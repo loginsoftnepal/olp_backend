@@ -16,7 +16,7 @@ async function bootstrap() {
   // app.useWebSocketAdapter(adapter);
   app.useStaticAssets(join(__dirname, '../uploadedFiles'));
   app.useGlobalPipes(new ValidationPipe());
-  app.setGlobalPrefix('v1/api');
+  // app.setGlobalPrefix('v1/api');
   app.use(cookieParser());
   app.enableCors({
     origin: ['https://olp.logindesigns.com'],
