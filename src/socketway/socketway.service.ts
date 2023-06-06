@@ -26,7 +26,7 @@ import { ConversationsService } from 'src/conversations/conversations.service';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:5173'],
+    origin: ['https://olp.logindesigns.com'],
     credentials: true,
   },
 })
