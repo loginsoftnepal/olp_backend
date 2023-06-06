@@ -4,6 +4,7 @@ import Profile from './profile.entity';
 import { Repository } from 'typeorm';
 import { CreateProfileDto } from './dto/createProfile.dto';
 import { updateProfileDto } from './dto/updateProfile.dto';
+import User from 'src/users/user.entity';
 
 @Injectable()
 export class ProfileService {
@@ -12,22 +13,24 @@ export class ProfileService {
     private profileRepository: Repository<Profile>,
   ) {}
 
-  async createProfile(userId: string, profileDetail: CreateProfileDto) {
+  async createProfile(user: User, profileDetail: updateProfileDto) {
     const newProfile = this.profileRepository.create({
       ...profileDetail,
-      userId: userId,
+      user: user,
     });
 
     if (!newProfile) {
       throw new HttpException('Failed to create profile', HttpStatus.NOT_FOUND);
     }
 
+    await this.profileRepository.save(newProfile);
+
     return newProfile;
   }
 
-  async updateProfile(userId: string, profileDetail: updateProfileDto) {
+  async updateProfile(user: User, profileDetail: updateProfileDto) {
     const targetProfile = await this.profileRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
     if (!targetProfile) {
@@ -36,10 +39,10 @@ export class ProfileService {
 
     await this.profileRepository.update(targetProfile.id, profileDetail);
     const updateProfile = await this.profileRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
-    if (updateProfile) {
+    if (!updateProfile) {
       throw new HttpException('Profile not found', HttpStatus.NOT_FOUND);
     }
 
@@ -58,7 +61,8 @@ export class ProfileService {
 
   async getAProfile(userId: string) {
     const profile = await this.profileRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: userId } },
+      relations: ['user'],
     });
     if (!profile) {
       throw new HttpException('Profile not found', HttpStatus.NOT_FOUND);

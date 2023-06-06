@@ -1,27 +1,27 @@
+import User from 'src/users/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export default class Profile {
-  @PrimaryGeneratedColumn()
-  public id: number;
+  @PrimaryGeneratedColumn('uuid')
+  public id: string;
 
-  @Column()
-  public userId: string;
+  @OneToOne(() => User, (user) => user.profile)
+  public user: User;
 
   @Column()
   public fullname: string;
 
   @Column()
-  public age: number;
-
-  @Column()
-  public height: number;
+  public height: string;
 
   @Column()
   public sex: string;
@@ -29,26 +29,29 @@ export default class Profile {
   @Column()
   public religion: string;
 
-  @Column()
+  @Column({ nullable: true })
   public caste: string;
 
-  @Column()
+  @Column({ nullable: true })
   public subcaste: string;
 
   @Column({ nullable: true })
-  public gotra: string;
-
-  @Column()
-  public language: string;
+  public profileCreatedFor: string;
 
   @Column()
   public marital_status: string;
 
-  @Column({ type: Date })
-  public dateOfBirth: Date;
+  @Column({ nullable: true })
+  public day: string;
 
-  @Column()
-  public smokeOrdrink: string;
+  @Column({ nullable: true })
+  public month: string;
+
+  @Column({ nullable: true })
+  public year: string;
+
+  @Column({ nullable: true })
+  public address: string;
 
   @CreateDateColumn()
   public createdAt: Date;

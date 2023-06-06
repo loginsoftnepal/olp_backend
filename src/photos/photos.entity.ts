@@ -1,33 +1,29 @@
+import User from 'src/users/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export default class Photos {
-  @PrimaryGeneratedColumn()
-  public id: number;
+  @PrimaryGeneratedColumn('uuid')
+  public id: string;
 
   @Column()
-  public userId: number;
+  fileName: string;
 
-  @Column()
-  public picture1: string;
+  @Column({ nullable: true })
+  originalFileName: string;
 
-  @Column()
-  public picture2: string;
+  @Column({ nullable: true })
+  path: string;
 
-  @Column()
-  public picture3: string;
-
-  @Column()
-  public picture4: string;
-
-  @Column()
-  public picture5: string;
+  @ManyToOne(() => User, (user) => user.photos)
+  user: User;
 
   @CreateDateColumn()
   createdAt: Date;

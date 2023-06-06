@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import EducationEntity from './education.entity';
 import { Repository } from 'typeorm';
 import UpdateEducationDto from './dto/updateEducation.dto';
+import User from 'src/users/user.entity';
+import { compareSync } from 'bcrypt';
 
 @Injectable()
 export class EducationService {
@@ -12,13 +14,10 @@ export class EducationService {
     private educationRepository: Repository<EducationEntity>,
   ) {}
 
-  async createEducationDetail(
-    userId: string,
-    educationDetail: CreateEducationDto,
-  ) {
+  async createEducationDetail(user: User, educationDetail: UpdateEducationDto) {
     const newEducationDetail = this.educationRepository.create({
       ...educationDetail,
-      userId: userId,
+      user: { id: user.id },
     });
 
     if (!newEducationDetail) {
@@ -28,27 +27,30 @@ export class EducationService {
       );
     }
 
+    await this.educationRepository.save(newEducationDetail);
+
     return newEducationDetail;
   }
 
-  async updateEducationDetail(
-    userId: string,
-    educationDetail: UpdateEducationDto,
-  ) {
-    const tagrgetEducationDetail = await this.educationRepository.findOne({
-      where: { userId: userId },
+  async updateEducationDetail(user: User, educationDetail: UpdateEducationDto) {
+    const targetEducationDetail = await this.educationRepository.findOne({
+      where: { user: { id: user.id } },
     });
 
-    if (!tagrgetEducationDetail) {
-      throw new HttpException('Family not found', HttpStatus.NOT_FOUND);
+    if (!targetEducationDetail) {
+      throw new HttpException(
+        'Education detail not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
+    console.log(educationDetail);
     await this.educationRepository.update(
-      tagrgetEducationDetail.id,
+      targetEducationDetail.id,
       educationDetail,
     );
     const updatedEducationDetail = await this.educationRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
     if (!updatedEducationDetail) {
@@ -61,12 +63,12 @@ export class EducationService {
     return updatedEducationDetail;
   }
 
-  async getEducationDetail(userId: string) {
+  async getEducationDetail(user: User) {
     const educationDetail = await this.educationRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
-    if (educationDetail) {
+    if (!educationDetail) {
       throw new HttpException('Family detail not found', HttpStatus.NOT_FOUND);
     }
     return educationDetail;

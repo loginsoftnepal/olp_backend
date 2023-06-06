@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsDateString,
   IsNotEmpty,
@@ -16,13 +17,8 @@ export class updateProfileDto {
 
   @IsOptional()
   @IsNotEmpty()
-  @IsNumber()
-  age: number;
-
-  @IsOptional()
-  @IsNotEmpty()
   @IsString()
-  height: number;
+  height: string;
 
   @IsOptional()
   @IsNotEmpty()
@@ -33,6 +29,11 @@ export class updateProfileDto {
   @IsNotEmpty()
   @IsString()
   religion: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  profileCreatedFor: string;
 
   @IsOptional()
   @IsNotEmpty()
@@ -52,20 +53,30 @@ export class updateProfileDto {
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  language: string;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsString()
   martial_status: string;
 
-  @IsOptional()
   @IsNotEmpty()
   @IsString()
-  dateOfBirth: string;
+  @IsOptional()
+  day: string;
 
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  smokeOrdrink: string;
+  month: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  year: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  address: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  physicalDisability: string;
 }

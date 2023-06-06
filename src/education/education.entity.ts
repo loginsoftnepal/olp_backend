@@ -1,7 +1,10 @@
+import { Transform } from 'class-transformer';
+import User from 'src/users/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,13 +14,13 @@ export default class EducationEntity {
   @PrimaryGeneratedColumn('uuid')
   public id: string;
 
-  @Column()
-  public userId: string;
+  @OneToOne(() => User, (user) => user.education)
+  public user: User;
 
   @Column()
   public education_degree: string;
 
-  @Column()
+  @Column({ nullable: true })
   public subject: string;
 
   @Column()
@@ -26,26 +29,14 @@ export default class EducationEntity {
   @Column()
   public occupation: string;
 
-  @Column()
-  public job: boolean;
+  @Column({ nullable: true })
+  public annualIncome: string;
 
-  @Column()
-  public selfEmployed: boolean;
-
-  @Column()
-  public monthlySalary: number;
-
-  @Column()
-  public annualIncone: number;
+  @Column({ nullable: true })
+  public sector: string;
 
   @Column({ nullable: true })
   public companyName: string;
-
-  @Column()
-  public foreignEmployment: boolean;
-
-  @Column()
-  public country: string;
 
   @CreateDateColumn()
   public createdAt: Date;

@@ -12,8 +12,10 @@ import {
 import { UserAvatarService } from './user-avatar.service';
 import { Readable } from 'stream';
 import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('user-avatar')
+@ApiTags('user-avatar')
 @UseInterceptors(ClassSerializerInterceptor)
 export default class UserAvatarController {
   constructor(private readonly userAvatarService: UserAvatarService) {}

@@ -9,8 +9,10 @@ import {
 import { GoogleAuthenticationService } from './google-authentication.service';
 import TokenVerificationDto from './dto/tokenVerification.dto';
 import { Request } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('google-authentication')
+@ApiTags('google-authentication')
 @UseInterceptors(ClassSerializerInterceptor)
 export class GoogleAuthenticationController {
   constructor(

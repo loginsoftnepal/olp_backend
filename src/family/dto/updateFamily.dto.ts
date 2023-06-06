@@ -1,9 +1,6 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, isNotEmpty } from 'class-validator';
 
 export default class UpdateFamilyDto {
-  @IsNotEmpty()
-  @IsString()
-  mobile: string;
   @IsOptional()
   @IsNotEmpty()
   @IsString()
@@ -12,50 +9,50 @@ export default class UpdateFamilyDto {
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  fatherOccupation: string;
+  noOfSiblings: string;
 
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  motherOccupation: string;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsNumber()
-  noOfBrother: number;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsNumber()
-  noOfSister: number;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsNumber()
-  noOfFamilyMember: number;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsNumber()
-  noOfUmnarried: number;
+  noOfFamilyMember: string;
 
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  municipality: string;
+  noOfUnmarried: string;
 
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  district: string;
+  liveWithFamily: string;
 
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  province: string;
+  familyValues: string;
 
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  country: string;
+  gotra: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  parentStatus: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  familyAddress: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  nativePlace: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  motherTongue: string;
 }

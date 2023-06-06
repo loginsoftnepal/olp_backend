@@ -5,6 +5,7 @@ import TokenPayload from './tokenPayload.interface';
 import { UsersService } from 'src/users/users.service';
 import { Request } from 'express';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 
 export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
   constructor(
@@ -14,6 +15,7 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
+          console.log('hellow world');
           return request?.cookies?.Authentication;
         },
       ]),
@@ -22,12 +24,11 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
   }
 
   async validate(payload: TokenPayload) {
+    console.log('user is to be authenticated');
     const user = this.userService.getById(payload.userId);
     if (!user) {
-      throw new HttpException(
-        'User not authenticated',
-        HttpStatus.NOT_ACCEPTABLE,
-      );
+      console.log('user not authenticated');
+      throw new WsException('User not authenticated');
     }
     return user;
   }

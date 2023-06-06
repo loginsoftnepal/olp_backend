@@ -1,15 +1,18 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdatePrefDto {
+  @Transform((value) => String(value))
   @IsOptional()
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  minAge: number;
+  minAge: string;
 
+  @Transform((value) => String(value))
   @IsOptional()
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  maxAge: number;
+  maxAge: string;
 
   @IsOptional()
   @IsString()
@@ -17,12 +20,17 @@ export class UpdatePrefDto {
   maritalStatus: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  height: number;
+  minHeight: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsString()
+  @IsNotEmpty()
+  maxHeight: string;
+
+  @IsOptional()
+  @IsString()
   @IsNotEmpty()
   religion: string;
 
@@ -33,13 +41,12 @@ export class UpdatePrefDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   subcaste: string;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  language: string;
+  motherTongue: string;
 
   @IsOptional()
   @IsString()
@@ -49,15 +56,10 @@ export class UpdatePrefDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  education_sub: string;
+  subject: string;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  occupation: string;
-
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  country: string;
+  annualIncome: string;
 }

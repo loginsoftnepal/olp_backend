@@ -1,52 +1,53 @@
+import User from 'src/users/user.entity';
 import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
+  Entity,
 } from 'typeorm';
 
+@Entity()
 export default class Family {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column()
-  public userId: string;
-
-  @Column()
-  public mobile: string;
+  @OneToOne(() => User, (user) => user.family)
+  public user: User;
 
   @Column()
   public familyType: string;
 
-  @Column()
-  public fatherOccupation: string;
+  @Column({ nullable: true })
+  public noOfFamilyMember: string;
 
-  @Column()
-  public motherOccupation: string;
+  @Column({ nullable: true })
+  public noOfSiblings: string;
 
-  @Column()
-  public noOfBrother: number;
+  @Column({ nullable: true })
+  public noOfUnmarried: string;
 
-  @Column()
-  public noOfSister: number;
+  @Column({ nullable: true })
+  public liveWithFamily: string;
 
-  @Column()
-  public noOfFamilyMember: number;
+  @Column({ nullable: true })
+  public nativePlace: string;
 
-  @Column()
-  public noOfUnmarried: number;
+  @Column({ nullable: true })
+  public familyValues: string;
 
-  @Column()
-  public municipality: string;
+  @Column({ nullable: true })
+  public gotra: string;
 
-  @Column()
-  public district: string;
+  @Column({ nullable: true })
+  public parentStatus: string;
 
-  @Column()
-  public province: string;
+  @Column({ nullable: true })
+  public familyAddress: string;
 
-  @Column()
-  public country: string;
+  @Column({ nullable: true })
+  public motherTongue: string;
 
   @CreateDateColumn()
   public createdAt: Date;

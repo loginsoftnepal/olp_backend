@@ -1,23 +1,27 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreatePrefDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  minAge: number;
+  minAge: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  maxAge: number;
+  maxAge: string;
 
   @IsString()
   @IsNotEmpty()
   maritalStatus: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  height: number;
+  maxHeight: string;
 
-  @IsNumber()
+  @IsString()
+  @IsNotEmpty()
+  minHeight: string;
+
+  @IsString()
   @IsNotEmpty()
   religion: string;
 
@@ -31,7 +35,7 @@ export class CreatePrefDto {
 
   @IsString()
   @IsNotEmpty()
-  language: string;
+  motherTongue: string;
 
   @IsString()
   @IsNotEmpty()
@@ -39,7 +43,7 @@ export class CreatePrefDto {
 
   @IsString()
   @IsNotEmpty()
-  education_sub: string;
+  subject: string;
 
   @IsString()
   @IsNotEmpty()
@@ -47,5 +51,9 @@ export class CreatePrefDto {
 
   @IsString()
   @IsNotEmpty()
-  country: string;
+  annualIncome: string;
+
+  @IsString()
+  @IsNotEmpty()
+  sector: string;
 }

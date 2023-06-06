@@ -1,26 +1,33 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import User from 'src/users/user.entity';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export default class Preferance {
   @PrimaryGeneratedColumn('uuid')
   public id: string;
 
-  @Column()
-  public userId: string;
+  @OneToOne(() => User, (user) => user.preferance)
+  public user: User;
 
-  @Column()
-  public minAge: number;
+  @Column({ nullable: true })
+  public minAge: string;
 
-  @Column()
-  public maxAge: number;
+  @Column({ nullable: true })
+  public maxAge: string;
 
   @Column()
   public maritalStatus: string;
 
   @Column({ nullable: true })
-  public height: number;
+  public minHeight: string;
 
-  @Column()
+  @Column({ nullable: true })
+  public maxHeight: string;
+
+  @Column({ nullable: true })
+  public sector: string;
+
+  @Column({ nullable: true })
   public religion: string;
 
   @Column({ nullable: true })
@@ -29,18 +36,18 @@ export default class Preferance {
   @Column({ nullable: true })
   public subcaste: string;
 
-  @Column()
-  public language: string;
-
-  @Column()
-  public education: string;
-
-  @Column()
-  public occupation: string;
-
-  @Column()
-  public country: string;
+  @Column({ nullable: true })
+  public motherTongue: string;
 
   @Column({ nullable: true })
-  public smokeOrDrink: string;
+  public education: string;
+
+  @Column({ nullable: true })
+  public subject: string;
+
+  @Column({ nullable: true })
+  public occupation: string;
+
+  @Column({ nullable: true })
+  public annualIncome: string;
 }

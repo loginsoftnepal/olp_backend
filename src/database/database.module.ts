@@ -11,6 +11,12 @@ import UserAvatar from 'src/user-avatar/user-avatar.entity';
 import { ForgetPassword } from 'src/forget-password/forget-password.entity';
 import Family from 'src/family/family.entity';
 import EducationEntity from 'src/education/education.entity';
+import { Connection } from 'src/connection/connection.entity';
+import { ConnectionRequest } from 'src/connection-requests/connection-request.entity';
+import { Message } from 'src/message/message.entity';
+import { MessageAttachment } from 'src/message-attachments/message-attachments.entity';
+import { Conversation } from 'src/conversations/conversation.entity';
+import { Peer } from 'src/peer/peer.entity';
 
 @Module({
   imports: [
@@ -31,6 +37,12 @@ import EducationEntity from 'src/education/education.entity';
           ForgetPassword,
           Family,
           EducationEntity,
+          Connection,
+          ConnectionRequest,
+          Message,
+          MessageAttachment,
+          Conversation,
+          Peer,
           // __dirname + '/../**/*.entity.ts'
         ],
         synchronize: true,

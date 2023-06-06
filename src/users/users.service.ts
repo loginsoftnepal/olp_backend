@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Connection, Repository } from 'typeorm';
+import { Connection, Like, Repository } from 'typeorm';
 import CreateUserDto from './dto/createUser.dto';
 import User from './user.entity';
 import * as bcrypt from 'bcrypt';
@@ -16,6 +16,17 @@ import { randomBytes } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { EmailScheduleService } from 'src/email-schedule/email-schedule.service';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import {
+  EducationParams,
+  FamilyParams,
+  PreferanceParams,
+  ProfileParams,
+} from 'src/utils/types';
+import { ProfileService } from 'src/profile/profile.service';
+import { FamilyService } from 'src/family/family.service';
+import { PreferanceService } from 'src/preferance/preferance.service';
+import { EducationService } from 'src/education/education.service';
+import { Peer } from 'src/peer/peer.entity';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +37,11 @@ export class UsersService {
     private readonly forgetPasswordService: ForgetPasswordService,
     private readonly configService: ConfigService,
     private readonly emailScheduleService: EmailScheduleService,
+    private readonly profileService: ProfileService,
+    private readonly familyService: FamilyService,
+    private readonly preferanceService: PreferanceService,
+    private readonly educationService: EducationService,
+    @InjectRepository(Peer) private readonly peerRepository: Repository<Peer>,
     private connection: Connection,
   ) {}
 
@@ -46,7 +62,10 @@ export class UsersService {
   }
 
   async getById(id: string) {
-    const user = await this.usersRepository.findOne({ where: { id: id } });
+    const user = await this.usersRepository.findOne({
+      where: { id: id },
+      relations: ['profile', 'family', 'education', 'preferance', 'peer'],
+    });
     if (user) {
       return user;
     }
@@ -54,6 +73,90 @@ export class UsersService {
       'User with this id does not exist',
       HttpStatus.NOT_FOUND,
     );
+  }
+
+  async findByUserName(username: string) {
+    const users = await this.usersRepository.find({
+      where: { profile: { fullname: Like(`%${username}%`) } },
+      relations: ['profile'],
+    });
+    console.log(users);
+    return users;
+  }
+
+  async filterUser(query: any) {
+    const queryBuilder = this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .leftJoinAndSelect('user.education', 'education')
+      .leftJoinAndSelect('user.family', 'family');
+
+    if (query.religion) {
+      queryBuilder.andWhere('profile.religion = :religion', {
+        religion: query.religion,
+      });
+    }
+
+    if (query.annualIncome) {
+      queryBuilder.andWhere('education.annualIncocme = :annualIncome', {
+        annualIncome: query.annualIncocme,
+      });
+    }
+
+    if (query.caste) {
+      queryBuilder.andWhere('profile.caste = :caste', {
+        caste: query.caste,
+      });
+    }
+
+    if (query.maritalStatus) {
+      queryBuilder.andWhere('profile.maritalStatus = :maritalStatus', {
+        maritalStatus: query.maritalStatus,
+      });
+    }
+
+    if (query.maxAge) {
+      const currentYear = new Date().getFullYear();
+      const minBirthyear = currentYear - query.maxAge - 1;
+
+      queryBuilder.andWhere('profile.year >= :year', {
+        year: minBirthyear,
+      });
+    }
+
+    if (query.minAge) {
+      const currentYear = new Date().getFullYear();
+      const maxBirthyear = currentYear - query.minAge;
+      queryBuilder.andWhere(`profile.year <= :minYear`, {
+        minYear: maxBirthyear,
+      });
+    }
+
+    const result = await queryBuilder.getMany();
+    return result;
+  }
+
+  async getRecommendation(user: User) {
+    const requiredGender = user.profile.sex === 'Male' ? 'Female' : 'Male';
+    const requiredReligon =
+      user.preferance.religion === 'Religion No Boundry'
+        ? '*'
+        : user.profile.religion;
+    const requiredCaste = (user.preferance.caste = 'Caste No bar'
+      ? '*'
+      : user.profile.caste);
+
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .leftJoinAndSelect('user.education', 'education')
+      .leftJoinAndSelect('user.family', 'family')
+      .where('profile.sex = :sex', { sex: requiredGender })
+      .andWhere('profile.religion = :religion', { religion: requiredReligon })
+      .andWhere('profile.caste = :caste', { caste: requiredCaste })
+      .orderBy('RANDOM()')
+      .getMany();
+    return users;
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, userId: string) {
@@ -83,7 +186,10 @@ export class UsersService {
   }
 
   async create(userData: CreateUserDto) {
-    const newUser = await this.usersRepository.create(userData);
+    console.log(userData);
+    const peer = this.peerRepository.create();
+    const newUser = this.usersRepository.create({ ...userData, peer });
+
     await this.usersRepository.save(newUser);
     return newUser;
   }
@@ -224,5 +330,90 @@ export class UsersService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async updateProfile(params: ProfileParams) {
+    const user = await this.getById(params.userId);
+
+    const currentProfile = user.profile;
+
+    let profile;
+    if (currentProfile) {
+      profile = this.profileService.updateProfile(user, params.profileDetail);
+    } else {
+      profile = await this.profileService.createProfile(
+        user,
+        params.profileDetail,
+      );
+    }
+    const newProfile = await this.profileService.getAProfile(params.userId);
+    user.profile = newProfile;
+    await this.usersRepository.save(user);
+    return profile;
+  }
+
+  async updateFamily(params: FamilyParams) {
+    const user = await this.getById(params.userId);
+
+    const currentFamily = user.family;
+    let family;
+    if (currentFamily) {
+      family = this.familyService.updateFamily(user, params.familyDetail);
+    } else {
+      family = this.familyService.createFamily(user, params.familyDetail);
+    }
+
+    const newFamily = await this.familyService.getFamilyDetail(user);
+    user.family = newFamily;
+    await this.usersRepository.save(user);
+    return family;
+  }
+
+  async updateEducation(params: EducationParams) {
+    const user = await this.getById(params.userId);
+
+    const currentEducation = user.education;
+    let education;
+    if (currentEducation) {
+      education = this.educationService.updateEducationDetail(
+        user,
+        params.educationDetail,
+      );
+    } else {
+      education = this.educationService.createEducationDetail(
+        user,
+        params.educationDetail,
+      );
+    }
+
+    const newEducation = await this.educationService.getEducationDetail(user);
+    user.education = newEducation;
+    await this.usersRepository.save(user);
+    return education;
+  }
+
+  async updatePreferance(params: PreferanceParams) {
+    const user = await this.getById(params.userId);
+
+    const currentPreferance = user.preferance;
+    let preferance;
+    if (currentPreferance) {
+      preferance = this.preferanceService.updatePreferance(
+        user,
+        params.preferanceDetail,
+      );
+    } else {
+      preferance = this.preferanceService.createPreferance(
+        user,
+        params.preferanceDetail,
+      );
+    }
+
+    const newPreferance = await this.preferanceService.getPreferanceDetail(
+      user,
+    );
+    user.preferance = newPreferance;
+    await this.usersRepository.save(user);
+    return preferance;
   }
 }

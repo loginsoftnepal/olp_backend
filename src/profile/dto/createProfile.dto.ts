@@ -1,57 +1,73 @@
-import {
-  IsDate,
-  IsDateString,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProfileDto {
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   fullname: string;
 
+  @IsOptional()
   @IsNotEmpty()
-  @IsNumber()
-  age: number;
+  @IsString()
+  height: string;
 
-  @IsNotEmpty()
-  @IsNumber()
-  height: number;
-
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   sex: string;
 
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   religion: string;
 
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  profileCreatedFor: string;
+
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   caste: string;
 
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   subcaste: string;
 
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   gotra: string;
 
-  @IsNotEmpty()
-  @IsString()
-  language: string;
-
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   martial_status: string;
 
   @IsNotEmpty()
-  @IsDate()
-  dateOfBirth: Date;
+  @IsString()
+  @IsOptional()
+  day: string;
 
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
-  smokeOrdrink: string;
+  month: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  year: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  address: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  physicalDisability: string;
 }

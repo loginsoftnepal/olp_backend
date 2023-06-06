@@ -7,15 +7,21 @@ import { Logger } from '@nestjs/common';
 import 'dotenv/config';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { SocketwayAdapter } from './socketway/sockerway.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('bootstrap');
-  app.useStaticAssets(join(__dirname, '..', 'static'));
+  const adapter = new SocketwayAdapter(app);
+  // app.useWebSocketAdapter(adapter);
+  app.useStaticAssets(join(__dirname, '../uploadedFiles'));
   app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix('v1/api');
   app.use(cookieParser());
-  app.enableCors();
+  app.enableCors({
+    origin: ['http://localhost:5173'],
+    credentials: true,
+  });
 
   const config = new DocumentBuilder()
     .setTitle('OlpApi Documetation')

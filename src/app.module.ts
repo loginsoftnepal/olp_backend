@@ -20,6 +20,18 @@ import { UserAvatarModule } from './user-avatar/user-avatar.module';
 import { ForgetPasswordModule } from './forget-password/forget-password.module';
 import { FamilyModule } from './family/family.module';
 import { EducationModule } from './education/education.module';
+import { ConnectionModule } from './connection/connection.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ConnectionRequestsModule } from './connection-requests/connection-requests.module';
+import { MessageModule } from './message/message.module';
+import { MessageAttachmentsModule } from './message-attachments/message-attachments.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { EventsModule } from './events/events.module';
+import { SocketwayModule } from './socketway/socketway.module';
+import { SessionManagerModule } from './session-manager/session-manager.module';
+import { WsAuthGuard } from './authentication/ws-auth.guard';
+import { APP_GUARD } from '@nestjs/core';
+import { PeerModule } from './peer/peer.module';
 
 @Module({
   imports: [
@@ -60,8 +72,25 @@ import { EducationModule } from './education/education.module';
     ForgetPasswordModule,
     FamilyModule,
     EducationModule,
+    ConnectionModule,
+    EventEmitterModule.forRoot(),
+    ConnectionRequestsModule,
+    MessageModule,
+    MessageAttachmentsModule,
+    ConversationsModule,
+    EventsModule,
+    SocketwayModule,
+    SessionManagerModule,
+    PeerModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuthenticationService],
+  providers: [
+    AppService,
+    AuthenticationService,
+    {
+      provide: APP_GUARD,
+      useClass: WsAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

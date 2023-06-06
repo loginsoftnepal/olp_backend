@@ -98,8 +98,10 @@ export class AuthenticationController {
       this.authenticationService.getCookieWithJwtRefreshToken(user.id);
 
     await this.usersService.setCurrentRefreshToken(token, user.id);
+    const newUser = await this.usersService.getById(user.id);
+    console.log(accessTokenCookie, cookie);
     request.res.setHeader('Set-Cookie', [accessTokenCookie, cookie]);
-    return user;
+    return newUser;
   }
 
   @UseGuards(JwtAuthenticationGuard)
@@ -116,10 +118,11 @@ export class AuthenticationController {
 
   @UseGuards(JwtAuthenticationGuard)
   @Get()
-  authenticate(@Req() request: RequestWithUser) {
+  async authenticate(@Req() request: RequestWithUser) {
     const user = request.user;
-    user.password = undefined;
-    return user;
+    const newUser = await this.usersService.getById(user.id);
+    newUser.password = undefined;
+    return newUser;
   }
 
   @UseGuards(JwtRefreshGuard)

@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsNumber,
@@ -28,37 +29,16 @@ export default class UpdateEducationDto {
   occupation: string;
 
   @IsNotEmpty()
-  @IsBoolean()
+  @IsString()
   @IsOptional()
-  job: boolean;
+  sector: string;
 
   @IsNotEmpty()
-  @IsBoolean()
   @IsOptional()
-  selfEmployed: boolean;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @IsOptional()
-  monthlySalary: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @IsOptional()
-  annualIncome: number;
+  annualIncome: string;
 
   @IsNotEmpty()
   @IsString()
   @IsOptional()
   companyName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsOptional()
-  foreignEmployment: boolean;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsOptional()
-  country: string;
 }

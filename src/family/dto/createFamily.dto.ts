@@ -1,51 +1,48 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsString, isString } from 'class-validator';
 
 export default class CreateFamilyDto {
-  @IsNotEmpty()
-  @IsString()
-  mobile: string;
-
   @IsNotEmpty()
   @IsString()
   familyType: string;
 
   @IsNotEmpty()
   @IsString()
-  fatherOccupation: string;
+  noOfSiblings: string;
 
   @IsNotEmpty()
   @IsString()
-  motherOccupation: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  noOfBrother: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  noOfSister: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  noOfFamilyMember: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  noOfUmnarried: number;
+  noOfFamilyMember: string;
 
   @IsNotEmpty()
   @IsString()
-  municipality: string;
+  noOfUnmarried: string;
 
   @IsNotEmpty()
   @IsString()
-  district: string;
+  liveWithFamily: string;
 
   @IsNotEmpty()
   @IsString()
-  province: string;
+  familyValues: string;
 
   @IsNotEmpty()
   @IsString()
-  country: string;
+  gotra: string;
+
+  @IsNotEmpty()
+  @IsString()
+  parentStatus: string;
+
+  @IsNotEmpty()
+  @IsString()
+  familyAddress: string;
+
+  @IsNotEmpty()
+  @IsString()
+  nativePlace: string;
+
+  @IsNotEmpty()
+  @IsString()
+  motherTongue: string;
 }

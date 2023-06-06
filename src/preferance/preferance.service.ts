@@ -4,6 +4,7 @@ import Preferance from './preferance.entity';
 import { Repository } from 'typeorm';
 import { CreatePrefDto } from './dto/createPref.dto';
 import { UpdatePrefDto } from './dto/updatePref.dto';
+import User from 'src/users/user.entity';
 
 @Injectable()
 export class PreferanceService {
@@ -12,10 +13,10 @@ export class PreferanceService {
     private preferanceRepository: Repository<Preferance>,
   ) {}
 
-  async createPreferance(userId: string, createPref: CreatePrefDto) {
+  async createPreferance(user: User, createPref: UpdatePrefDto) {
     const newPref = await this.preferanceRepository.create({
       ...createPref,
-      userId: userId,
+      user: { id: user.id },
     });
 
     if (!newPref) {
@@ -25,12 +26,13 @@ export class PreferanceService {
       );
     }
 
+    await this.preferanceRepository.save(newPref);
     return newPref;
   }
 
-  async updatePreferance(userId: string, updatePref: UpdatePrefDto) {
+  async updatePreferance(user: User, updatePref: UpdatePrefDto) {
     const targetUpdatePref = await this.preferanceRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
     if (!targetUpdatePref) {
@@ -39,7 +41,7 @@ export class PreferanceService {
 
     await this.preferanceRepository.update(targetUpdatePref.id, updatePref);
     const updatedPref = await this.preferanceRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
     if (!updatedPref) {
@@ -49,9 +51,10 @@ export class PreferanceService {
     return updatedPref;
   }
 
-  async getPreferanceDetail(userId: string) {
+  async getPreferanceDetail(user: User) {
     const prefDetail = await this.preferanceRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
+      relations: ['user'],
     });
     if (!prefDetail) {
       throw new HttpException(

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import Family from './family.entity';
 import UpdateFamilyDto from './dto/updateFamily.dto';
 import CreateFamilyDto from './dto/createFamily.dto';
+import User from 'src/users/user.entity';
 
 @Injectable()
 export class FamilyService {
@@ -12,10 +13,10 @@ export class FamilyService {
     private familyRepository: Repository<Family>,
   ) {}
 
-  async createFamily(userId: string, familyDetail: CreateFamilyDto) {
+  async createFamily(user: User, familyDetail: CreateFamilyDto) {
     const newFamily = this.familyRepository.create({
       ...familyDetail,
-      userId: userId,
+      user: user,
     });
 
     if (!newFamily) {
@@ -25,12 +26,14 @@ export class FamilyService {
       );
     }
 
+    await this.familyRepository.save(newFamily);
+
     return newFamily;
   }
 
-  async updateFamily(userId: string, familyDetail: UpdateFamilyDto) {
+  async updateFamily(user: User, familyDetail: UpdateFamilyDto) {
     const targetFamilyDetail = await this.familyRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
     if (!targetFamilyDetail) {
@@ -39,7 +42,7 @@ export class FamilyService {
 
     await this.familyRepository.update(targetFamilyDetail.id, familyDetail);
     const updatedFamilyDetail = await this.familyRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
 
     if (!updatedFamilyDetail) {
@@ -49,9 +52,9 @@ export class FamilyService {
     return updatedFamilyDetail;
   }
 
-  async getFamilyDetail(userId: string) {
+  async getFamilyDetail(user: User) {
     const familyDetail = await this.familyRepository.findOne({
-      where: { userId: userId },
+      where: { user: { id: user.id } },
     });
     if (!familyDetail) {
       throw new HttpException('Family detail not found', HttpStatus.NOT_FOUND);

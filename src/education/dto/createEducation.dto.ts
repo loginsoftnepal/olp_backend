@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export default class CreateEducationDto {
   @IsNotEmpty()
@@ -18,18 +18,6 @@ export default class CreateEducationDto {
   occupation: string;
 
   @IsNotEmpty()
-  @IsBoolean()
-  job: boolean;
-
-  @IsNotEmpty()
-  @IsBoolean()
-  selfEmployed: boolean;
-
-  @IsNotEmpty()
-  @IsNumber()
-  monthlySalary: number;
-
-  @IsNotEmpty()
   @IsNumber()
   annualIncome: number;
 
@@ -39,9 +27,5 @@ export default class CreateEducationDto {
 
   @IsNotEmpty()
   @IsString()
-  foreignEmployment: boolean;
-
-  @IsNotEmpty()
-  @IsString()
-  country: string;
+  sector: string;
 }

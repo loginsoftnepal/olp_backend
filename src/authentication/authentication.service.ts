@@ -139,7 +139,7 @@ export class AuthenticationService {
       secret: this.configService.get('ACCESS_TOKEN_SECRET'),
       expiresIn: `${this.configService.get('ACCESS_TOKEN_EXPIRATION_TIME')}d`,
     });
-    return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get(
+    return `Authentication=${token}; Path=/; Max-Age=${this.configService.get(
       'ACCESS_TOKEN_EXPIRATION_TIME',
     )}d`;
   }
@@ -151,7 +151,7 @@ export class AuthenticationService {
       expiresIn: `${this.configService.get('REFRESH_TOKEN_EXPIRATION_TIME')}d`,
     });
 
-    const cookie = `Refresh=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get(
+    const cookie = `Refresh=${token}; Path=/;  Max-Age=${this.configService.get(
       'REFRESH_TOKEN_EXPIRATION_TIME',
     )}d`;
     return { cookie, token };

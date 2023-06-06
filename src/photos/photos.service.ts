@@ -12,11 +12,22 @@ export class PhotosService {
     private photoRepository: Repository<Photos>,
   ) {}
 
-  // async getPhotosByUserId(userId: number) {
-  //   const user = await this.photoRepository.findOne({ where: { userId: userId }});
-  //   return user;
-  // }
+  async getPhotosByUserId(userId: string) {
+    const user = await this.photoRepository.find({
+      where: { user: { id: userId } },
+    });
+    return user;
+  }
 
+  async deletePhoto(photoId: string, userId: string) {
+    const deleteResponse = await this.photoRepository.delete(photoId);
+    if (!deleteResponse.affected) {
+      throw new HttpException(
+        'something went wrong',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   // async createPhotoDetail(photoDetail: PhotoDetailDto, userId: number) {
   //   const photo = await this.photoRepository.create({
   //      ...photoDetail,
@@ -36,4 +47,9 @@ export class PhotosService {
   //   }else {
   //     await this.createPhotoDetail(photoDetail, user.id);
   //   }
+
+  async uploadPhoto(data: Partial<Photos>) {
+    const createPhoto = await this.photoRepository.create(data);
+    return await this.photoRepository.save(createPhoto);
+  }
 }
