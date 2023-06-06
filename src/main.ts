@@ -19,7 +19,7 @@ async function bootstrap() {
   // app.setGlobalPrefix('v1/api');
   app.use(cookieParser());
   app.enableCors({
-    origin: ['https://soft-croquembouche-7986b0.netlify.app'],
+    origin: '*',
     credentials: true,
   });
 
