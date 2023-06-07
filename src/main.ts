@@ -19,7 +19,7 @@ async function bootstrap() {
   // app.setGlobalPrefix('v1/api');
   app.use(cookieParser());
   app.enableCors({
-    origin: '*',
+    origin: ['https://olp.logindesigns.com'],
     credentials: true,
   });
 

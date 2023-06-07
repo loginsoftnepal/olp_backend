@@ -26,7 +26,7 @@ import { ConversationsService } from 'src/conversations/conversations.service';
 
 @WebSocketGateway({
   cors: {
-    origin: ['https://soft-croquembouche-7986b0.netlify.app'],
+    origin: ['https://olp.logindesigns.com'],
     credentials: true,
   },
 })
