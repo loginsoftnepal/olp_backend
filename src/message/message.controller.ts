@@ -24,6 +24,7 @@ import JwtAuthenticationGuard from 'src/authentication/jwt-authentication.guard'
 import { diskStorage } from 'multer';
 import { CreateCallDto } from './dto/createCall.dto';
 import { UnknownCallException } from './exceptions/UnknownCall.exception';
+import { extname } from 'path';
 
 @Controller('message')
 @UseGuards(JwtAuthenticationGuard)
@@ -47,6 +48,12 @@ export class MessageController {
       {
         storage: diskStorage({
           destination: './uploadedFiles/attachments',
+          filename: (req, file, cb) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const fileExtension = extname(file.originalname);
+            cb(null, `${uniqueSuffix}${fileExtension}`);
+          },
         }),
       },
     ),
@@ -58,7 +65,6 @@ export class MessageController {
     @UploadedFiles() files: Record<string, Express.Multer.File[]>,
     @Body() { message }: CreateMessageDto,
   ) {
-    console.log(files);
     if (!files.attachments && !message) {
       throw new EmptyMessageException();
     }

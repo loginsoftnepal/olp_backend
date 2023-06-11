@@ -64,13 +64,19 @@ export class UsersService {
   }
 
   async getById(id: string) {
+    console.log('searching');
+    if (id === 'research') {
+      return;
+    }
     const user = await this.usersRepository.findOne({
       where: { id: id },
-      relations: ['profile', 'family', 'education', 'preferance', 'peer'],
+      relations: ['profile', 'family', 'education', 'preferance'],
     });
+    console.log(user);
     if (user) {
       return user;
     }
+
     throw new HttpException(
       'User with this id does not exist',
       HttpStatus.NOT_FOUND,
@@ -80,7 +86,7 @@ export class UsersService {
   async findByUserName(username: string) {
     const users = await this.usersRepository.find({
       where: { profile: { fullname: Like(`%${username}%`) } },
-      relations: ['profile'],
+      relations: ['profile', 'family', 'education', 'preferance'],
     });
     console.log(users);
     return users;

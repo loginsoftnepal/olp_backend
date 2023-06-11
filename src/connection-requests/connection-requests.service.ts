@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionRequest } from './connection-request.entity';
 import { Repository } from 'typeorm';
@@ -78,6 +78,7 @@ export class ConnectionRequestsService {
       receiver,
       status: 'pending',
     });
+    console.log('requst created');
     return this.connectionRequestRepository.save(connectionRequest);
   }
 
@@ -134,7 +135,12 @@ export class ConnectionRequestsService {
       ],
     });
 
-    await this.connectionRequestRepository.delete(connectionRequest.id);
+    const deleteResponse = await this.connectionRequestRepository.delete(
+      connectionRequest.id,
+    );
+    if (!deleteResponse.affected) {
+      throw new HttpException('failed to disconnect', HttpStatus.BAD_REQUEST);
+    }
     return connection;
   }
 

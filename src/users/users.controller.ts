@@ -58,6 +58,7 @@ export class UsersController {
   @Get(':id')
   @UseGuards(JwtAuthenticationGuard)
   async getUserById(@Param('id') id: string) {
+    console.log('getting User by Id');
     return this.usersService.getById(id);
   }
 
@@ -186,10 +187,10 @@ export class UsersController {
 
   // }
 
-  // @Get('search/conversation')
-  // @UseGuards(JwtAuthenticationGuard)
+  @Get('search/conversation')
+  @UseGuards(JwtAuthenticationGuard)
   async searchConversation(
-    // @Req() request: RequestWithUser,
+    @Req() request: RequestWithUser,
     @Query('username') username: string,
   ) {
     console.log('seearch/conversation');
@@ -197,47 +198,77 @@ export class UsersController {
     return result;
   }
 
-  @Get('search')
-  async searchUser(@Query('username') username: string) {
+  @Get('research/:username')
+  @UseGuards(JwtAuthenticationGuard)
+  async researchUser(
+    @Req() request: RequestWithUser,
+    @Param('username') username: string,
+  ) {
     console.log(username);
+    const result = await this.usersService.findByUserName(username);
+    return Promise.all(
+      result.map(async (user) => {
+        return {
+          id: user.id,
+          fullname: user.profile.fullname,
+          year: user.profile.year,
+          month: user.profile.month,
+          day: user.profile.day,
+          address: user.profile.address,
+          caste: user.profile.caste,
+          religion: user.profile.religion,
+          avatarId: user.avatarId,
+          occupation: user.education.occupation,
+          isConnected: (await this.connectionService.isConnection(
+            request.user.id,
+            user.id,
+          ))
+            ? true
+            : false,
+          // isPending: await this.connectionRequestService.isPending(
+          //   request.user.id,
+          //   user.id,
+          // ),
+        };
+      }),
+    );
   }
 
-  // @Get('search')
-  // @UseGuards(JwtAuthenticationGuard)
-  // async searchUser(
-  // @Req() request: RequestWithUser,
-  // @Query('username') username: string,
-  // ) {
-  // console.log(username);
-  // const result = await this.usersService.findByUserName(username);
-  // return result;
-  // return Promise.all(
-  //   result.map(async (user) => {
-  //     return {
-  //       id: user.id,
-  //       fullname: user.profile.fullname,
-  //       year: user.profile.year,
-  //       month: user.profile.month,
-  //       day: user.profile.day,
-  //       address: user.profile.address,
-  //       caste: user.profile.caste,
-  //       religion: user.profile.religion,
-  //       avatarId: user.avatarId,
-  //       occupation: user.education.occupation,
-  //       isConnected: (await this.connectionService.isConnection(
-  //         request.user.id,
-  //         user.id,
-  //       ))
-  //         ? true
-  //         : false,
-  //       // isPending: await this.connectionRequestService.isPending(
-  //       //   request.user.id,
-  //       //   user.id,
-  //       // ),
-  //     };
-  // }),
-  // );
-  // }
+  @Get('search')
+  @UseGuards(JwtAuthenticationGuard)
+  async searchUser(
+    @Req() request: RequestWithUser,
+    @Query('username') username: string,
+  ) {
+    console.log(username);
+    const result = await this.usersService.findByUserName(username);
+    return Promise.all(
+      result.map(async (user) => {
+        return {
+          id: user.id,
+          fullname: user.profile.fullname,
+          year: user.profile.year,
+          month: user.profile.month,
+          day: user.profile.day,
+          address: user.profile.address,
+          caste: user.profile.caste,
+          religion: user.profile.religion,
+          avatarId: user.avatarId,
+          occupation: user.education.occupation,
+          isConnected: (await this.connectionService.isConnection(
+            request.user.id,
+            user.id,
+          ))
+            ? true
+            : false,
+          // isPending: await this.connectionRequestService.isPending(
+          //   request.user.id,
+          //   user.id,
+          // ),
+        };
+      }),
+    );
+  }
 
   @Get('filter')
   @UseGuards(JwtAuthenticationGuard)

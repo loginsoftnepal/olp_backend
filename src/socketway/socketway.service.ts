@@ -52,6 +52,7 @@ export class SocketwayService
   }
 
   async handleConnection(socket: AuthenticatedSocket, ...args: any[]) {
+    console.log('we are here socket');
     const user = await this.userService.getById(socket.user.userId);
     if (!user) throw new WsException('User is not registered');
     this.sessionManager.setUserSocket(socket.user.userId, socket);

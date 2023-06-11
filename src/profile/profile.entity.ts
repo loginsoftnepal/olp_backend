@@ -53,6 +53,9 @@ export default class Profile {
   @Column({ nullable: true })
   public address: string;
 
+  @Column({ nullable: true })
+  public physicalDisability: string;
+
   @CreateDateColumn()
   public createdAt: Date;
 

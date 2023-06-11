@@ -16,10 +16,8 @@ export class MessageAttachmentsService {
 
   async create(attachments: Attachment[]) {
     const promise = attachments.map(async (attachment) => {
-      const fileName = uuidv4() + extname(attachment.originalname);
-
       const newAttachment = this.attachmentRepository.create({
-        fileName,
+        fileName: attachment.filename,
         originalFileName: attachment.originalname,
         path: attachment.path,
       });

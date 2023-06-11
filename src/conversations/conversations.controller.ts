@@ -28,6 +28,7 @@ export class ConversationsController {
     @Body() createConversationPayload: CreateConversationDto,
     @Req() request: RequestWithUser,
   ) {
+    console.log('creating conversation');
     const conversation = await this.conversationsService.createConversation(
       request.user,
       createConversationPayload,
