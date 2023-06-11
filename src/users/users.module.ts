@@ -15,6 +15,9 @@ import { EducationModule } from 'src/education/education.module';
 import { PreferanceModule } from 'src/preferance/preferance.module';
 import { PeerModule } from 'src/peer/peer.module';
 import { Peer } from 'src/peer/peer.entity';
+import { BannerModule } from 'src/banner/banner.module';
+import { ConnectionModule } from 'src/connection/connection.module';
+import { ConnectionRequestsModule } from 'src/connection-requests/connection-requests.module';
 
 @Module({
   imports: [
@@ -29,6 +32,8 @@ import { Peer } from 'src/peer/peer.entity';
     EducationModule,
     PreferanceModule,
     PeerModule,
+    BannerModule,
+    ConnectionModule,
   ],
   providers: [UsersService],
   controllers: [UsersController],

@@ -17,6 +17,9 @@ import { Message } from 'src/message/message.entity';
 import { MessageAttachment } from 'src/message-attachments/message-attachments.entity';
 import { Conversation } from 'src/conversations/conversation.entity';
 import { Peer } from 'src/peer/peer.entity';
+import Notification from 'src/notification/notification.entity';
+import { Call } from 'src/call/call.entity';
+import Banner from 'src/banner/banner.entity';
 
 @Module({
   imports: [
@@ -43,6 +46,9 @@ import { Peer } from 'src/peer/peer.entity';
           MessageAttachment,
           Conversation,
           Peer,
+          Notification,
+          Call,
+          Banner,
           // __dirname + '/../**/*.entity.ts'
         ],
         synchronize: true,

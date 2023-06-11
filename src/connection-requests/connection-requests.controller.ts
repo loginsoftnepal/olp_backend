@@ -27,6 +27,7 @@ export class ConnectionRequestsController {
   @Get()
   @UseGuards(JwtAuthenticationGuard)
   getConnectionRequests(@Req() request: RequestWithUser) {
+    console.log('fetching connection request');
     return this.connectionRequestService.getConnectionRequests(request.user.id);
   }
 
@@ -38,7 +39,7 @@ export class ConnectionRequestsController {
   ) {
     console.log('conneciton request');
     const params = { user: request.user, userId: payload.userId };
-
+    console.log(params.userId);
     const connectionRequest = await this.connectionRequestService.create(
       params,
     );
@@ -86,5 +87,23 @@ export class ConnectionRequestsController {
     });
     this.event.emit('connection-request.reject', response);
     return response;
+  }
+
+  @Delete(':id/delete')
+  @UseGuards(JwtAuthenticationGuard)
+  async deleteConnectionRequest(
+    @Req() request: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    const {
+      user: { id: userId },
+    } = request;
+
+    const connection = await this.connectionRequestService.delete({
+      id,
+      userId,
+    });
+    this.event.emit('connection.removed', { connection, userId });
+    return connection;
   }
 }

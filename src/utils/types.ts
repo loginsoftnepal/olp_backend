@@ -20,6 +20,20 @@ export type CreateMessageParams = {
   user: User;
 };
 
+export type CreateCallParams = {
+  id: string;
+  type: string;
+  status: string;
+  user: User;
+};
+
+export type CreateNotificationParams = {
+  user: User;
+  type: string;
+  content: string;
+  heading: string;
+};
+
 export type CreateMessageResponse = {
   message: Message;
   conversation: Conversation;
@@ -47,6 +61,19 @@ export type EditMessageParams = {
   messageId: string;
   userId: string;
   message: string;
+};
+
+export type FilterUserParams = {
+  minHeight: string;
+  maxHeight: string;
+  minAge: string;
+  maxAge: string;
+  maritalStatus: string;
+  religion: string;
+  caste: string;
+  annualIncome: string;
+  page: number;
+  limit: string;
 };
 
 export type CreateConnectionParams = {

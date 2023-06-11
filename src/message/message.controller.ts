@@ -22,6 +22,8 @@ import { EditMessageDto } from './dto/updateMessage.dto';
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import JwtAuthenticationGuard from 'src/authentication/jwt-authentication.guard';
 import { diskStorage } from 'multer';
+import { CreateCallDto } from './dto/createCall.dto';
+import { UnknownCallException } from './exceptions/UnknownCall.exception';
 
 @Controller('message')
 @UseGuards(JwtAuthenticationGuard)
@@ -86,6 +88,31 @@ export class MessageController {
   // ) {
   //   console.log(files);
   // }
+
+  @Post('/call/:id')
+  @UseGuards(JwtAuthenticationGuard)
+  async createCall(
+    @Req() request: RequestWithUser,
+    @Param('id') id: string,
+    @Body() { type, status }: CreateCallDto,
+  ) {
+    if (type !== 'video' && type !== 'audio') {
+      throw new UnknownCallException();
+    }
+
+    if (status !== 'onVideoCallInitiate' && status !== 'onAudioCallInitiate') {
+      throw new UnknownCallException();
+    }
+
+    const params = {
+      user: request.user,
+      id: id,
+      type: type,
+      status: status,
+    };
+
+    const response = await this.messageService.createCall(params);
+  }
 
   @Get(':id')
   async getMessagesFromConversation(

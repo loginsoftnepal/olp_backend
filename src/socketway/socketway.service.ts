@@ -26,7 +26,7 @@ import { ConversationsService } from 'src/conversations/conversations.service';
 
 @WebSocketGateway({
   cors: {
-    origin: ['https://olp.logindesigns.com'],
+    origin: ['http://localhost:5173'],
     credentials: true,
   },
 })
@@ -182,7 +182,11 @@ export class SocketwayService
     const caller = user;
     console.log(caller);
     const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
-    if (!receiverSocket) socket.emit('onUserUnavailable');
+    if (!receiverSocket) {
+      setTimeout(() => {
+        socket.emit('onUserUnavailable');
+      }, 10000);
+    }
     receiverSocket && receiverSocket.emit('onVideoCall', { ...data, caller });
   }
 

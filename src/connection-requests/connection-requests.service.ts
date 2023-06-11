@@ -8,6 +8,7 @@ import {
   CancelConnectionRequestParams,
   ConnectionRequestParams,
   CreateConnectionParams,
+  DeleteConnectionRequestParams,
 } from 'src/utils/types';
 import { ConnectionRequestNotFoundException } from './dto/connectionRequestNotFound.exception';
 import { ConnectionRequestException } from './dto/connectionRequestException.exception';
@@ -116,6 +117,25 @@ export class ConnectionRequestsService {
 
     connectionRequest.status = 'rejected';
     return this.connectionRequestRepository.save(connectionRequest);
+  }
+
+  async delete({ id, userId }: DeleteConnectionRequestParams) {
+    const connection = await this.connectionService.deleteConnection({
+      id,
+      userId,
+    });
+    console.log(connection);
+    const connectionRequest = await this.connectionRequestRepository.findOne({
+      where: [
+        {
+          sender: { id: connection.sender.id },
+          receiver: { id: connection.receiver.id },
+        },
+      ],
+    });
+
+    await this.connectionRequestRepository.delete(connectionRequest.id);
+    return connection;
   }
 
   async isPending(userOneId: string, userTwoId: string) {

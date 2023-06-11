@@ -22,8 +22,8 @@ import { UsersService } from 'src/users/users.service';
 import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
 
-@Controller('photos')
-@ApiTags('photos')
+@Controller('photo')
+@ApiTags('photo')
 export class PhotosController {
   constructor(
     private readonly photosService: PhotosService,
@@ -85,6 +85,12 @@ export class PhotosController {
     FileFieldsInterceptor([{ name: 'photos', maxCount: 20 }], {
       storage: diskStorage({
         destination: './uploadedFiles/photos',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const fileExtension = extname(file.originalname);
+          cb(null, `${uniqueSuffix}${fileExtension}`);
+        },
       }),
     }),
   )
@@ -99,11 +105,11 @@ export class PhotosController {
     console.log(files.photos);
     const uploadedPhotos = await Promise.all(
       files.photos.map(async (file) => {
-        const fileName = uuidv4() + extname(file.originalname);
+        // const fileName = uuidv4() + extname(file.originalname);
         // console.log(file.originalname);
         console.log(file);
         const photo = await this.photosService.uploadPhoto({
-          fileName,
+          fileName: file.filename,
           originalFileName: file.originalname,
           path: file.path,
           user,

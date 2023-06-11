@@ -4,6 +4,7 @@ import { ConnectionController } from './connection.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from './connection.entity';
 import { ConnectionRequest } from 'src/connection-requests/connection-request.entity';
+import { ConnectionRequestsModule } from 'src/connection-requests/connection-requests.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Connection])],

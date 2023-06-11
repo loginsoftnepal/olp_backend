@@ -27,6 +27,7 @@ import { FamilyService } from 'src/family/family.service';
 import { PreferanceService } from 'src/preferance/preferance.service';
 import { EducationService } from 'src/education/education.service';
 import { Peer } from 'src/peer/peer.entity';
+import { BannerService } from 'src/banner/banner.service';
 
 @Injectable()
 export class UsersService {
@@ -41,6 +42,7 @@ export class UsersService {
     private readonly familyService: FamilyService,
     private readonly preferanceService: PreferanceService,
     private readonly educationService: EducationService,
+    private readonly bannerService: BannerService,
     @InjectRepository(Peer) private readonly peerRepository: Repository<Peer>,
     private connection: Connection,
   ) {}
@@ -291,6 +293,44 @@ export class UsersService {
 
   private async hashPassword(newPassword: string) {
     return await bcrypt.hash(newPassword, 10);
+  }
+
+  async addBanner(userId, file: any) {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const user = await queryRunner.manager.findOne(User, {
+        where: { id: userId },
+      });
+      const currentBannerId = user?.banner?.id;
+
+      const banner = await this.bannerService.uploadUserBanner(
+        file,
+        queryRunner,
+        user,
+      );
+      await queryRunner.manager.update(User, userId, {
+        banner: banner,
+      });
+
+      if (currentBannerId) {
+        await this.bannerService.deleteBannerWithQueryRunner(
+          currentBannerId,
+          queryRunner,
+        );
+      }
+
+      await queryRunner.commitTransaction();
+
+      return banner;
+    } catch {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException();
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async addAvatar(userId: string, imageBuffer: Buffer, filename: string) {

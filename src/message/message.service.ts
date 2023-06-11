@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Message } from './message.entity';
 import { Repository } from 'typeorm';
 import {
+  CreateCallParams,
   CreateMessageParams,
   DeleteMessageParams,
   EditMessageParams,
@@ -15,6 +16,7 @@ import { instanceToPlain } from 'class-transformer';
 import { CannotDeleteMessageException } from './exceptions/cannotDeleteMessage.exception';
 import { Conversation } from 'src/conversations/conversation.entity';
 import { MessageAttachmentsService } from 'src/message-attachments/message-attachments.service';
+import { CallService } from 'src/call/call.service';
 
 @Injectable()
 export class MessageService {
@@ -24,8 +26,8 @@ export class MessageService {
     private readonly conversationService: ConversationsService,
     private readonly connectionService: ConnectionService,
     private readonly messageAttachmentService: MessageAttachmentsService,
+    private readonly callService: CallService,
   ) {}
-
   async createMessage(params: CreateMessageParams) {
     const { user, message, attachments, id } = params;
     const conversation = await this.conversationService.findById(id);
@@ -55,10 +57,39 @@ export class MessageService {
 
   getMessages(conversationId: string) {
     return this.messageRepository.find({
-      relations: ['author', 'attachments', 'conversation'],
+      relations: ['author', 'attachments', 'call', 'conversation'],
       where: { conversation: { id: conversationId } },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async createCall(params: CreateCallParams) {
+    const { user, type, status, id } = params;
+
+    const conversation = await this.conversationService.findById(id);
+    if (!conversation) throw new ConversationNotFoundException();
+    const { creator, recepient } = conversation;
+    const isConnected = await this.connectionService.isConnection(
+      creator.id,
+      recepient.id,
+    );
+    if (!isConnected) throw new ConversationNotFoundException();
+
+    if (creator.id !== user.id && recepient.id !== user.id) {
+      throw new CannotCreateMessageException();
+    }
+
+    const newCall = await this.callService.create({ type, status });
+    const newMessage = this.messageRepository.create({
+      conversation,
+      author: instanceToPlain(user),
+      call: newCall,
+    });
+
+    const savedMessage = await this.messageRepository.save(newMessage);
+    conversation.lastMessageSent = savedMessage;
+    const updated = await this.conversationService.save(conversation);
+    return { message: savedMessage, conversation: updated };
   }
 
   async deleteMessage(params: DeleteMessageParams) {

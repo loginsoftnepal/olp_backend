@@ -15,6 +15,8 @@ import Preferance from 'src/preferance/preferance.entity';
 import EducationEntity from 'src/education/education.entity';
 import { Peer } from 'src/peer/peer.entity';
 import Photos from 'src/photos/photos.entity';
+import Notification from 'src/notification/notification.entity';
+import Banner from 'src/banner/banner.entity';
 
 @Entity()
 class User {
@@ -32,6 +34,10 @@ class User {
 
   @Column({ nullable: true })
   public avatarId?: string;
+
+  @OneToOne(() => Banner, (banner) => banner.user)
+  @JoinColumn()
+  public banner: Banner;
 
   @Column({ nullable: true })
   @Exclude()
@@ -76,6 +82,10 @@ class User {
   @OneToMany(() => Photos, (photos) => photos.user)
   @JoinColumn()
   photos: Photos[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  @JoinColumn()
+  notification: Notification[];
 
   @OneToMany(() => Message, (message) => message.author)
   @JoinColumn()

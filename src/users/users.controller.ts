@@ -32,12 +32,19 @@ import UpdateFamilyDto from 'src/family/dto/updateFamily.dto';
 import { UpdatePrefDto } from 'src/preferance/dto/updatePref.dto';
 import UpdateEducationDto from 'src/education/dto/updateEducation.dto';
 import { string } from 'joi';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { ConnectionService } from 'src/connection/connection.service';
+import { ConnectionRequestsService } from 'src/connection-requests/connection-requests.service';
 
 @Controller('users')
 @ApiTags('users')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly connectionService: ConnectionService, // private readonly connectionRequestService: ConnectionRequestsService,
+  ) {}
 
   @Put()
   @UseGuards(JwtAuthenticationGuard)
@@ -46,6 +53,12 @@ export class UsersController {
     @Req() request: RequestWithUser,
   ) {
     return this.usersService.updateUser(request.user.id, newUserDetail);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthenticationGuard)
+  async getUserById(@Param('id') id: string) {
+    return this.usersService.getById(id);
   }
 
   @Post('avatar')
@@ -65,6 +78,33 @@ export class UsersController {
       file.buffer,
       file.originalname,
     );
+  }
+
+  @Post('banner')
+  @UseGuards(JwtAuthenticationGuard)
+  @UseInterceptors(
+    FileInterceptor('banner', {
+      storage: diskStorage({
+        destination: './uploadedFiles/banner',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const fileExtension = extname(file.originalname);
+          cb(null, `${uniqueSuffix}${fileExtension}`);
+        },
+      }),
+    }),
+  )
+  @ApiConsumes('mulitpart/form-data')
+  @ApiBody({
+    description: 'A banner for user profile',
+    type: FileUploadDto,
+  })
+  async addBanner(
+    @Req() request: RequestWithUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.usersService.addBanner(request.user.id, file);
   }
 
   @Post('personal-detail')
@@ -146,10 +186,10 @@ export class UsersController {
 
   // }
 
-  @Get('search/conversation')
-  @UseGuards(JwtAuthenticationGuard)
+  // @Get('search/conversation')
+  // @UseGuards(JwtAuthenticationGuard)
   async searchConversation(
-    @Req() request: RequestWithUser,
+    // @Req() request: RequestWithUser,
     @Query('username') username: string,
   ) {
     console.log('seearch/conversation');
@@ -158,25 +198,61 @@ export class UsersController {
   }
 
   @Get('search')
-  async searchUser(
-    @Req() request: RequestWithUser,
-    @Query('username') username: string,
-  ) {
-    const result = await this.usersService.findByUserName(username);
-    return result;
+  async searchUser(@Query('username') username: string) {
+    console.log(username);
   }
 
+  // @Get('search')
+  // @UseGuards(JwtAuthenticationGuard)
+  // async searchUser(
+  // @Req() request: RequestWithUser,
+  // @Query('username') username: string,
+  // ) {
+  // console.log(username);
+  // const result = await this.usersService.findByUserName(username);
+  // return result;
+  // return Promise.all(
+  //   result.map(async (user) => {
+  //     return {
+  //       id: user.id,
+  //       fullname: user.profile.fullname,
+  //       year: user.profile.year,
+  //       month: user.profile.month,
+  //       day: user.profile.day,
+  //       address: user.profile.address,
+  //       caste: user.profile.caste,
+  //       religion: user.profile.religion,
+  //       avatarId: user.avatarId,
+  //       occupation: user.education.occupation,
+  //       isConnected: (await this.connectionService.isConnection(
+  //         request.user.id,
+  //         user.id,
+  //       ))
+  //         ? true
+  //         : false,
+  //       // isPending: await this.connectionRequestService.isPending(
+  //       //   request.user.id,
+  //       //   user.id,
+  //       // ),
+  //     };
+  // }),
+  // );
+  // }
+
   @Get('filter')
+  @UseGuards(JwtAuthenticationGuard)
   async filterUser(
     @Req() request: RequestWithUser,
-    @Query('minHeight') minHeight: string,
-    @Query('maxHeight') maxHeight: string,
-    @Query('minAge') minAge: string,
-    @Query('maxAge') maxAge: string,
-    @Query('maritalStatus') maritalStatus: string,
-    @Query('religion') religion: string,
-    @Query('caste') caste: string,
-    @Query('annualIncome') annualIncome: string,
+    @Query('minHeight') minHeight?: string,
+    @Query('maxHeight') maxHeight?: string,
+    @Query('minAge') minAge?: string,
+    @Query('maxAge') maxAge?: string,
+    @Query('maritalStatus') maritalStatus?: string,
+    @Query('religion') religion?: string,
+    @Query('caste') caste?: string,
+    @Query('annualIncome') annualIncome?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
   ) {
     console.log('we are here');
     const result = await this.usersService.filterUser({
@@ -188,14 +264,66 @@ export class UsersController {
       religion,
       caste,
       annualIncome,
+      page,
+      limit,
     });
-    return result;
+
+    return Promise.all(
+      result.map(async (user) => {
+        return {
+          id: user.id,
+          fullname: user.profile.fullname,
+          year: user.profile.year,
+          month: user.profile.month,
+          day: user.profile.day,
+          address: user.profile.address,
+          caste: user.profile.caste,
+          religion: user.profile.religion,
+          avatarId: user.avatarId,
+          occupation: user.education.occupation,
+          isConnected: (await this.connectionService.isConnection(
+            request.user.id,
+            user.id,
+          ))
+            ? true
+            : false,
+          // isPending: await this.connectionRequestService.isPending(
+          //   request.user.id,
+          //   user.id,
+          // ),
+        };
+      }),
+    );
   }
 
-  @Get('recommed/user')
+  @Get('recommend/user')
   @UseGuards(JwtAuthenticationGuard)
   async recommendUsers(@Req() request: RequestWithUser) {
     const result = await this.usersService.getRecommendation(request.user);
-    return result;
+    const resultToResult = result.map(async (user) => {
+      return {
+        id: user.id,
+        fullname: user.profile.fullname,
+        year: user.profile.year,
+        month: user.profile.month,
+        day: user.profile.day,
+        address: user.profile.address,
+        caste: user.profile.caste,
+        religion: user.profile.religion,
+        avatarId: user.avatarId,
+        occupation: user.education.occupation,
+        isConnected: (await this.connectionService.isConnection(
+          request.user.id,
+          user.id,
+        ))
+          ? true
+          : false,
+        // isPending: await this.connectionRequestService.isPending(
+        //   request.user.id,
+        //   user.id,
+        // ),
+      };
+    });
+    return Promise.all(resultToResult);
   }
 }

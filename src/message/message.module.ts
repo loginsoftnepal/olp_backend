@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Message } from './message.entity';
 import { ConnectionModule } from 'src/connection/connection.module';
 import { MessageAttachmentsModule } from 'src/message-attachments/message-attachments.module';
+import { CallModule } from 'src/call/call.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { MessageAttachmentsModule } from 'src/message-attachments/message-attach
     ConversationsModule,
     ConnectionModule,
     MessageAttachmentsModule,
+    CallModule,
   ],
   controllers: [MessageController],
   providers: [MessageService],

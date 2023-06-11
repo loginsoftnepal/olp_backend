@@ -32,6 +32,9 @@ import { SessionManagerModule } from './session-manager/session-manager.module';
 import { WsAuthGuard } from './authentication/ws-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { PeerModule } from './peer/peer.module';
+import { CallModule } from './call/call.module';
+import { NotificationModule } from './notification/notification.module';
+import { BannerModule } from './banner/banner.module';
 
 @Module({
   imports: [
@@ -82,6 +85,9 @@ import { PeerModule } from './peer/peer.module';
     SocketwayModule,
     SessionManagerModule,
     PeerModule,
+    CallModule,
+    NotificationModule,
+    BannerModule,
   ],
   controllers: [AppController],
   providers: [

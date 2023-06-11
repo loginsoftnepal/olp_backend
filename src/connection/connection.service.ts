@@ -6,6 +6,7 @@ import { DeleteConnectionRequestParams } from 'src/utils/types';
 import { ConnectionNotFoundException } from './exception/connectionNotFound.exception';
 import { DeleteConnectionException } from './exception/deleteConnection.exception';
 import { ConnectionRequest } from 'src/connection-requests/connection-request.entity';
+import { ConnectionRequestsService } from 'src/connection-requests/connection-requests.service';
 
 @Injectable()
 export class ConnectionService {
