@@ -26,6 +26,9 @@ class User {
   @Column({ unique: true })
   public username: string;
 
+  @Column({ nullable: true })
+  public googleAvatar: string;
+
   @JoinColumn({ name: 'avatarId' })
   @OneToOne(() => UserAvatar, {
     nullable: true,

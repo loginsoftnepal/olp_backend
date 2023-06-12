@@ -47,10 +47,11 @@ export class UsersService {
     private connection: Connection,
   ) {}
 
-  async createWithGoogle(email: string, name: string) {
+  async createWithGoogle(email: string, name: string, picture: string) {
     const newUser = this.usersRepository.create({
       email: email,
       username: name,
+      googleAvatar: picture,
       isGoogleAuth: true,
     });
 
@@ -70,7 +71,14 @@ export class UsersService {
     }
     const user = await this.usersRepository.findOne({
       where: { id: id },
-      relations: ['profile', 'family', 'education', 'preferance'],
+      relations: [
+        'profile',
+        'family',
+        'education',
+        'preferance',
+        'photos',
+        'banner',
+      ],
     });
     console.log(user);
     if (user) {
@@ -145,7 +153,7 @@ export class UsersService {
   }
 
   async getRecommendation(user: User) {
-    const requiredGender = user.profile.sex === 'Male' ? 'Female' : 'Male';
+    const requiredGender = user?.profile?.sex === 'Male' ? 'Female' : 'Male';
     const requiredReligon =
       user.preferance.religion === 'Religion No Boundry'
         ? '*'
@@ -187,10 +195,10 @@ export class UsersService {
       return user;
     }
 
-    throw new HttpException(
-      'User with this email does not exist',
-      HttpStatus.NOT_FOUND,
-    );
+    // throw new HttpException(
+    //   'User with this email does not exist',
+    //   HttpStatus.NOT_FOUND,
+    // );
   }
 
   async create(userData: CreateUserDto) {

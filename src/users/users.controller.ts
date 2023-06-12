@@ -55,6 +55,99 @@ export class UsersController {
     return this.usersService.updateUser(request.user.id, newUserDetail);
   }
 
+  @Get('filter')
+  @UseGuards(JwtAuthenticationGuard)
+  async filterUser(
+    @Req() request: RequestWithUser,
+    @Query('minHeight') minHeight?: string,
+    @Query('maxHeight') maxHeight?: string,
+    @Query('minAge') minAge?: string,
+    @Query('maxAge') maxAge?: string,
+    @Query('maritalStatus') maritalStatus?: string,
+    @Query('religion') religion?: string,
+    @Query('caste') caste?: string,
+    @Query('annualIncome') annualIncome?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    console.log('we are here');
+    const result = await this.usersService.filterUser({
+      minHeight,
+      maxHeight,
+      minAge,
+      maxAge,
+      maritalStatus,
+      religion,
+      caste,
+      annualIncome,
+      page,
+      limit,
+    });
+
+    return Promise.all(
+      result.map(async (user) => {
+        return {
+          id: user.id,
+          fullname: user.profile.fullname,
+          year: user.profile.year,
+          month: user.profile.month,
+          day: user.profile.day,
+          address: user.profile.address,
+          caste: user.profile.caste,
+          religion: user.profile.religion,
+          avatarId: user.avatarId,
+          occupation: user.education.occupation,
+          isConnected: (await this.connectionService.isConnection(
+            request.user.id,
+            user.id,
+          ))
+            ? true
+            : false,
+          // isPending: await this.connectionRequestService.isPending(
+          //   request.user.id,
+          //   user.id,
+          // ),
+        };
+      }),
+    );
+  }
+
+  @Get('search')
+  @UseGuards(JwtAuthenticationGuard)
+  async searchUser(
+    @Req() request: RequestWithUser,
+    @Query('username') username: string,
+  ) {
+    console.log(username);
+    const result = await this.usersService.findByUserName(username);
+    return Promise.all(
+      result.map(async (user) => {
+        return {
+          id: user.id,
+          fullname: user.profile.fullname,
+          year: user.profile.year,
+          month: user.profile.month,
+          day: user.profile.day,
+          address: user.profile.address,
+          caste: user.profile.caste,
+          religion: user.profile.religion,
+          avatarId: user.avatarId,
+          occupation: user.education.occupation,
+          isConnected: (await this.connectionService.isConnection(
+            request.user.id,
+            user.id,
+          ))
+            ? true
+            : false,
+          // isPending: await this.connectionRequestService.isPending(
+          //   request.user.id,
+          //   user.id,
+          // ),
+        };
+      }),
+    );
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthenticationGuard)
   async getUserById(@Param('id') id: string) {
@@ -206,99 +299,6 @@ export class UsersController {
   ) {
     console.log(username);
     const result = await this.usersService.findByUserName(username);
-    return Promise.all(
-      result.map(async (user) => {
-        return {
-          id: user.id,
-          fullname: user.profile.fullname,
-          year: user.profile.year,
-          month: user.profile.month,
-          day: user.profile.day,
-          address: user.profile.address,
-          caste: user.profile.caste,
-          religion: user.profile.religion,
-          avatarId: user.avatarId,
-          occupation: user.education.occupation,
-          isConnected: (await this.connectionService.isConnection(
-            request.user.id,
-            user.id,
-          ))
-            ? true
-            : false,
-          // isPending: await this.connectionRequestService.isPending(
-          //   request.user.id,
-          //   user.id,
-          // ),
-        };
-      }),
-    );
-  }
-
-  @Get('search')
-  @UseGuards(JwtAuthenticationGuard)
-  async searchUser(
-    @Req() request: RequestWithUser,
-    @Query('username') username: string,
-  ) {
-    console.log(username);
-    const result = await this.usersService.findByUserName(username);
-    return Promise.all(
-      result.map(async (user) => {
-        return {
-          id: user.id,
-          fullname: user.profile.fullname,
-          year: user.profile.year,
-          month: user.profile.month,
-          day: user.profile.day,
-          address: user.profile.address,
-          caste: user.profile.caste,
-          religion: user.profile.religion,
-          avatarId: user.avatarId,
-          occupation: user.education.occupation,
-          isConnected: (await this.connectionService.isConnection(
-            request.user.id,
-            user.id,
-          ))
-            ? true
-            : false,
-          // isPending: await this.connectionRequestService.isPending(
-          //   request.user.id,
-          //   user.id,
-          // ),
-        };
-      }),
-    );
-  }
-
-  @Get('filter')
-  @UseGuards(JwtAuthenticationGuard)
-  async filterUser(
-    @Req() request: RequestWithUser,
-    @Query('minHeight') minHeight?: string,
-    @Query('maxHeight') maxHeight?: string,
-    @Query('minAge') minAge?: string,
-    @Query('maxAge') maxAge?: string,
-    @Query('maritalStatus') maritalStatus?: string,
-    @Query('religion') religion?: string,
-    @Query('caste') caste?: string,
-    @Query('annualIncome') annualIncome?: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
-  ) {
-    console.log('we are here');
-    const result = await this.usersService.filterUser({
-      minHeight,
-      maxHeight,
-      minAge,
-      maxAge,
-      maritalStatus,
-      religion,
-      caste,
-      annualIncome,
-      page,
-      limit,
-    });
-
     return Promise.all(
       result.map(async (user) => {
         return {

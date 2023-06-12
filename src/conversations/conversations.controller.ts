@@ -34,6 +34,7 @@ export class ConversationsController {
       createConversationPayload,
     );
     this.events.emit('conversation.create', conversation);
+    console.log(conversation);
     return conversation;
   }
 

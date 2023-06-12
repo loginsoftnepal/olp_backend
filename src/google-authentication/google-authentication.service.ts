@@ -32,22 +32,29 @@ export class GoogleAuthenticationService {
       });
 
       const payload = this.ticket.getPayload();
-
       const email = payload?.email;
       const user = await this.usersService.getByEmail(email);
+      console.log(user);
       if (user) {
         return this.handleRegisteredUser(user);
       }
+      console.log('user with this email doesnot exist');
       return this.registerUser(payload, email);
     } catch (error) {
-      throw new HttpException(error, HttpStatus.NOT_FOUND);
+      throw new HttpException('Something went wrong', HttpStatus.NOT_FOUND);
     }
   }
 
   async registerUser(payload: any, email: string) {
     const username = payload.name;
-    const user = await this.usersService.createWithGoogle(email, username);
-
+    const picture = payload.picture;
+    console.log('this that');
+    const user = await this.usersService.createWithGoogle(
+      email,
+      username,
+      picture,
+    );
+    console.log('handling restrer');
     return this.handleRegisteredUser(user);
   }
 

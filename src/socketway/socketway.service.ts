@@ -96,8 +96,11 @@ export class SocketwayService
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
     console.log('onTypingStart');
-    console.log(client.rooms);
-    client.to(`conversation=${data.roomId}`).emit('onTypingStart');
+    const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
+    // const receiver = data.conversation && data.conversation.creator.id == client.user.id ? data.conversation.receiver.id
+    // console.log(client.rooms);
+    // client.to(`conversation=${data.roomId}`).emit('onTypingStart');
+    receiverSocket.emit('onTypingStart');
   }
 
   @SubscribeMessage('onTypingStop')
@@ -106,7 +109,9 @@ export class SocketwayService
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
     console.log('onTypingStop');
-    client.to(`conversation-${data.roomId}`).emit('onTypingStop');
+    const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
+    receiverSocket.emit('onTypingStop');
+    // client.to(`conversation-${data.roomId}`).emit('onTypingStop');
   }
 
   @SubscribeMessage('getConnectionOnline')
