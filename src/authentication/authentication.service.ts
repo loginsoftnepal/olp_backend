@@ -9,6 +9,8 @@ import CreateAdminDto from './dto/requestCreateAdmin.dto';
 import { AdminService } from 'src/admin/admin.service';
 import { randomBytes } from 'crypto';
 import { EmailScheduleService } from 'src/email-schedule/email-schedule.service';
+import { EmailVerification } from 'src/email-verification/email-verification.entity';
+import { EmailVerificationService } from 'src/email-verification/email-verification.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -17,6 +19,7 @@ export class AuthenticationService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly adminService: AdminService,
+    private readonly emailVerificationService: EmailVerificationService,
     private readonly emailScheduleService: EmailScheduleService,
   ) {}
 
@@ -52,23 +55,24 @@ export class AuthenticationService {
   }
 
   public async sendVerificaitonEmail(userId: string, email: string) {
-    const verificationToken = this.generateVerificationToken(24);
+    console.log(userId, email);
+    const verificationToken = await this.generateVerificationToken(24);
     const client_url = this.configService.get('CLIENT_URL');
-
+    await this.emailVerificationService.create(userId, verificationToken);
     const recipient = email;
     const subject = `Verify Email`;
-    const content = `
+    const html = `
     <h1>Verify your email address</h1>
     <p style="font-size: 16px; font-weight: 600">Click to link below to verify Email. </p>
     <p style="font-size: 14px; font-weight: 600; color: red;">Ignore this if you don't ask for it</p>
     <br />
-    <a style = "font-size: 14px;" href=${client_url}/email/verify/${verificationToken}?userId=${userId} > Click here to verify your email </a>
+    <a style = "font-size: 14px;" href=${client_url}/email/verify/${verificationToken}?userId=${userId}> Click here to verify your email </a>
 `;
 
     this.emailScheduleService.scheduleEmail({
       recipient,
       subject,
-      content,
+      html,
       date: new Date(Date.now() + 1000 * 60),
     });
   }
@@ -169,5 +173,30 @@ export class AuthenticationService {
     hashedPassword: string,
   ) {
     await this.verifyPassword(oldPassword, hashedPassword);
+  }
+
+  public async resendVerificationEmail(userId: string, email: string) {
+    const emailVerification = await this.emailVerificationService.getByUserId(
+      userId,
+    );
+    if (emailVerification) {
+      await this.emailVerificationService.deleteEmailVerification(
+        emailVerification.id,
+      );
+    }
+
+    await this.sendVerificaitonEmail(userId, email);
+  }
+
+  public async verifyEmail(userId: string, resetToken: string) {
+    console.log('we reached to ');
+    const emailVerification = await this.emailVerificationService.getByToken(
+      resetToken,
+    );
+    const user = await this.usersService.emailVerify(userId);
+    await this.emailVerificationService.deleteEmailVerification(
+      emailVerification.id,
+    );
+    return user;
   }
 }

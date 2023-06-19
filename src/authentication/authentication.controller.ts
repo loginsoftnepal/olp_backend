@@ -4,7 +4,10 @@ import {
   Get,
   HttpCode,
   Injectable,
+  Param,
   Post,
+  Put,
+  Query,
   Req,
   Res,
   SerializeOptions,
@@ -25,6 +28,8 @@ import { ReturnCreateAdminDto } from './dto/returnCreateAdmin.dto';
 import { AdminService } from 'src/admin/admin.service';
 import { ApiBody, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import LoginDto from './dto/login.dto';
+import { ResendEmailDto } from './dto/resendEmail.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @ApiTags('Authentication')
 @Controller('authentication')
@@ -102,6 +107,42 @@ export class AuthenticationController {
     console.log(accessTokenCookie, cookie);
     request.res.setHeader('Set-Cookie', [accessTokenCookie, cookie]);
     return newUser;
+  }
+
+  @Put('resend/email')
+  @UseGuards(JwtAuthenticationGuard)
+  async resendEmail(
+    @Req() request: RequestWithUser,
+    @Body() resendEmail: ResendEmailDto,
+  ) {
+    console.log('resend email apit hit');
+    await this.authenticationService.resendVerificationEmail(
+      request.user.id,
+      resendEmail.email,
+    );
+  }
+
+  // @Post('forget/password')
+  // async forgetPassword(@Body() values: ResendEmailDto) {
+  //   return await this.usersService.forgetPassword(values.email);
+  // }
+
+  // @Put('reset/password/:token')
+  // async resetPassword(
+  //   @Body() values: ResetPasswordDto,
+  //   @Param('token') token: string,
+  // ) {
+  //   return await this.usersService.resetPassword(values, token);
+  // }
+
+  @Put('email/verify/:resetToken')
+  // @UseGuards(JwtAuthenticationGuard)
+  async emailVerification(
+    @Param('resetToken') resetToken: string,
+    @Query('userId') userId: string,
+  ) {
+    console.log(resetToken, userId);
+    return await this.authenticationService.verifyEmail(userId, resetToken);
   }
 
   @UseGuards(JwtAuthenticationGuard)

@@ -4,7 +4,9 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -24,6 +26,9 @@ export default class Notification {
 
   @Column({ nullable: true })
   public content: string;
+
+  @ManyToOne(() => User)
+  public relatedUser: User;
 
   @CreateDateColumn()
   public createdAt: string;

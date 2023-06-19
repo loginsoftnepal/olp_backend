@@ -25,6 +25,7 @@ export default class UserAvatarController {
     @Res({ passthrough: true }) response: Response,
     @Param('id') id: string,
   ) {
+    if (!id) return;
     const file = await this.userAvatarService.getFileById(id);
     const stream = Readable.from(file.data);
     // stream.pipe(response);

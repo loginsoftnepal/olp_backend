@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection } from './connection.entity';
 import { Repository } from 'typeorm';
@@ -40,6 +40,25 @@ export class ConnectionService {
     await this.connectionRepository.delete(id);
 
     return connection;
+  }
+
+  async deleteConnectionOfUser(userId: string) {
+    const deleteResponse = await this.connectionRepository
+      .createQueryBuilder('connection')
+      .leftJoinAndSelect('connection.sender', 'sender')
+      .leftJoinAndSelect('conneciton.receiver', 'receiver')
+      .delete()
+      .from(Connection)
+      .where('sender.id = :id', { id: userId })
+      .orWhere('receiver.id = :id', { id: userId })
+      .execute();
+
+    if (!deleteResponse.affected) {
+      throw new HttpException(
+        'No connections of users found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
   }
 
   async isConnection(userOneId: string, userTwoId: string) {

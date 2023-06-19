@@ -35,6 +35,8 @@ export class ConversationsService {
     return this.conversationRepository
       .createQueryBuilder('conversation')
       .leftJoinAndSelect('conversation.lastMessageSent', 'lastMessageSent')
+      .leftJoinAndSelect('lastMessageSent.author', 'author')
+      .leftJoinAndSelect('lastMessageSent.call', 'call')
       .leftJoinAndSelect('conversation.creator', 'creator')
       .leftJoinAndSelect('conversation.recepient', 'recepient')
       .where('creator.id = :id', { id })

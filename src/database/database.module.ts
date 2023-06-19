@@ -20,6 +20,7 @@ import { Peer } from 'src/peer/peer.entity';
 import Notification from 'src/notification/notification.entity';
 import { Call } from 'src/call/call.entity';
 import Banner from 'src/banner/banner.entity';
+import { EmailVerification } from 'src/email-verification/email-verification.entity';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import Banner from 'src/banner/banner.entity';
           Notification,
           Call,
           Banner,
+          EmailVerification,
           // __dirname + '/../**/*.entity.ts'
         ],
         synchronize: true,

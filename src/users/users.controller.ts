@@ -6,6 +6,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Injectable,
   Param,
   Post,
   Put,
@@ -36,6 +37,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { ConnectionService } from 'src/connection/connection.service';
 import { ConnectionRequestsService } from 'src/connection-requests/connection-requests.service';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Controller('users')
 @ApiTags('users')
@@ -94,6 +96,51 @@ export class UsersController {
           day: user.profile.day,
           address: user.profile.address,
           caste: user.profile.caste,
+          religion: user.profile.religion,
+          avatarId: user.avatarId,
+          occupation: user.education.occupation,
+          isConnected: (await this.connectionService.isConnection(
+            request.user.id,
+            user.id,
+          ))
+            ? true
+            : false,
+          // isPending: await this.connectionRequestService.isPending(
+          //   request.user.id,
+          //   user.id,
+          // ),
+        };
+      }),
+    );
+  }
+
+  @Get('letsBegin')
+  @UseGuards(JwtAuthenticationGuard)
+  async searchFromHome(
+    @Req() request: RequestWithUser,
+    @Query('searching_for') searchingFor: string,
+    @Query('ageFrom') ageFrom: string,
+    @Query('ageTo') ageTo: string,
+    @Query('caste') caste: string,
+  ) {
+    console.log('we are herre');
+    const result = await this.usersService.letsBegin(
+      searchingFor,
+      ageFrom,
+      ageTo,
+      caste,
+      request.user,
+    );
+
+    return Promise.all(
+      result.map(async (user) => {
+        return {
+          id: user.id,
+          fullname: user.profile.fullname,
+          year: user.profile.year,
+          month: user.profile.month,
+          day: user.profile.day,
+          address: user.profile.address,
           religion: user.profile.religion,
           avatarId: user.avatarId,
           occupation: user.education.occupation,
@@ -264,7 +311,21 @@ export class UsersController {
     await this.usersService.forgetPassword(user);
   }
 
-  @Post('password/reset')
+  @Put('password/change')
+  @UseGuards(JwtAuthenticationGuard)
+  async changePassword(
+    @Body() changePassword: ChangePasswordDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return await this.usersService.changePassword(
+      request.user.id,
+      changePassword.oldPassword,
+      changePassword.newPassword,
+      changePassword.confirmPassword,
+    );
+  }
+
+  @Post('password/reset/:token')
   async resetPassword(
     @Body() reset: ResetPasswordDto,
     @Param('token') token: string,
@@ -272,13 +333,11 @@ export class UsersController {
     return await this.usersService.resetPassword(reset, token);
   }
 
-  // @Delete('delete')
-  // @UseGuards(JwtAuthenticationGuard)
-  // async deleteUser(
-  //   @Req(): request: RequestWithUser
-  // ) {
-
-  // }
+  @Delete('delete')
+  @UseGuards(JwtAuthenticationGuard)
+  async deleteUser(@Req() request: RequestWithUser) {
+    return this.usersService.deleteUser(request.user.id);
+  }
 
   @Get('search/conversation')
   @UseGuards(JwtAuthenticationGuard)

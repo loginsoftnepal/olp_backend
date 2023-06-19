@@ -35,6 +35,7 @@ import { PeerModule } from './peer/peer.module';
 import { CallModule } from './call/call.module';
 import { NotificationModule } from './notification/notification.module';
 import { BannerModule } from './banner/banner.module';
+import { EmailVerificationModule } from './email-verification/email-verification.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { BannerModule } from './banner/banner.module';
     CallModule,
     NotificationModule,
     BannerModule,
+    EmailVerificationModule,
   ],
   controllers: [AppController],
   providers: [

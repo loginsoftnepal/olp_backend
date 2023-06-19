@@ -29,9 +29,12 @@ class User {
   @Column({ nullable: true })
   public googleAvatar: string;
 
+  @Column({ nullable: true, default: false })
+  public emailVerified: boolean;
+
   @JoinColumn({ name: 'avatarId' })
   @OneToOne(() => UserAvatar, {
-    nullable: true,
+    cascade: ['remove'],
   })
   public avatar?: UserAvatar;
 
@@ -64,11 +67,15 @@ class User {
   @JoinColumn()
   profile: Profile;
 
-  @OneToOne(() => Family, (family) => family.user)
+  @OneToOne(() => Family, (family) => family.user, {
+    cascade: ['remove'],
+  })
   @JoinColumn()
   family: Family;
 
-  @OneToOne(() => Preferance, (preferance) => preferance.user)
+  @OneToOne(() => Preferance, (preferance) => preferance.user, {
+    cascade: ['remove'],
+  })
   @JoinColumn()
   preferance: Preferance;
 
@@ -82,11 +89,15 @@ class User {
   @JoinColumn()
   peer: Peer;
 
-  @OneToMany(() => Photos, (photos) => photos.user)
+  @OneToMany(() => Photos, (photos) => photos.user, {
+    cascade: ['remove'],
+  })
   @JoinColumn()
   photos: Photos[];
 
-  @OneToMany(() => Notification, (notification) => notification.user)
+  @OneToMany(() => Notification, (notification) => notification.user, {
+    cascade: ['remove'],
+  })
   @JoinColumn()
   notification: Notification[];
 

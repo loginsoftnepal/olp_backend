@@ -14,10 +14,10 @@ export class CallService {
 
   async create(call: CreateCallDto) {
     const { type, status } = call;
-    const date = new Date();
-    const startTime = `${date.getHours()}:${
-      date.getMinutes
-    }: ${date.getSeconds()}`;
+    const startTime = new Date(Date.now());
+    // const startTime = `${date.getHours()}:${
+    //   date.getMinutes
+    // }: ${date.getSeconds()}`;
 
     const newCall = this.callRepository.create({
       type,
@@ -30,25 +30,28 @@ export class CallService {
   async update(call: UpdateCallDto) {
     const { status, id } = call;
     const targetCall = await this.getById(id);
-    const date = new Date();
-    const endTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+    // console.log(id);
+    const endTime = new Date(Date.now());
+    // const endTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
     if (!targetCall) {
       throw new HttpException('Call not found', HttpStatus.NOT_FOUND);
     }
-
     await this.callRepository.update(targetCall.id, {
       status: status,
       endTime: endTime,
     });
 
     const updateCallDetail = await this.callRepository.findOne({
-      where: { message: { id: id } },
+      where: { id: id },
     });
+    // console.log(updateCallDetail);
 
     if (!updateCallDetail) {
       throw new HttpException('Call Detail not found', HttpStatus.NOT_FOUND);
     }
+
+    return updateCallDetail;
   }
 
   async getById(id: string) {

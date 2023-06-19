@@ -28,6 +28,7 @@ import { PreferanceService } from 'src/preferance/preferance.service';
 import { EducationService } from 'src/education/education.service';
 import { Peer } from 'src/peer/peer.entity';
 import { BannerService } from 'src/banner/banner.service';
+import { query } from 'express';
 
 @Injectable()
 export class UsersService {
@@ -65,7 +66,7 @@ export class UsersService {
   }
 
   async getById(id: string) {
-    console.log('searching');
+    // console.log('searching');
     if (id === 'research') {
       return;
     }
@@ -80,7 +81,7 @@ export class UsersService {
         'banner',
       ],
     });
-    console.log(user);
+    // console.log(user);
     if (user) {
       return user;
     }
@@ -152,6 +153,58 @@ export class UsersService {
     return result;
   }
 
+  async letsBegin(
+    searchingFor: string,
+    ageFrom: string,
+    ageTo: string,
+    caste: string,
+    user: User,
+  ) {
+    const queryBuilder = this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile');
+
+    if (searchingFor) {
+      let sex;
+      if (searchingFor == 'brother') {
+        sex = 'woman';
+      } else if (searchingFor == 'sister') {
+        sex = 'man';
+      } else if (searchingFor == 'myself') {
+        sex = user.profile.sex == 'man' ? 'woman' : 'man';
+      }
+      queryBuilder.andWhere('profile.sex = :sex', {
+        sex: sex,
+      });
+    }
+
+    if (caste) {
+      queryBuilder.andWhere('profile.caste = :caste', {
+        caste: caste,
+      });
+    }
+
+    if (ageFrom) {
+      const currentYear = new Date().getFullYear();
+      const maxBirthyear = currentYear - Number(ageFrom);
+      queryBuilder.andWhere('profile.year <= :year', {
+        year: maxBirthyear,
+      });
+    }
+
+    if (ageTo) {
+      const currentYear = new Date().getFullYear();
+      const minBirthyear = currentYear - Number(ageTo);
+
+      queryBuilder.andWhere('profile.year >= :year', {
+        year: minBirthyear,
+      });
+    }
+
+    const result = await queryBuilder.getMany();
+    return result;
+  }
+
   async getRecommendation(user: User) {
     const requiredGender = user?.profile?.sex === 'Male' ? 'Female' : 'Male';
     const requiredReligon =
@@ -172,6 +225,14 @@ export class UsersService {
       .andWhere('profile.caste = :caste', { caste: requiredCaste })
       .orderBy('RANDOM()')
       .getMany();
+
+    if (users && users.length <= 0) {
+      const moreUser = await this.usersRepository.find({
+        where: { profile: { sex: requiredGender } },
+      });
+
+      return moreUser;
+    }
     return users;
   }
 
@@ -229,6 +290,7 @@ export class UsersService {
 
   async deleteUser(userId: string) {
     const deleteResponse = await this.usersRepository.delete(userId);
+
     if (!deleteResponse.affected) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
@@ -255,7 +317,7 @@ export class UsersService {
     this.emailScheduleService.scheduleEmail({
       recipient: user.email,
       subject: subject,
-      content: content,
+      html: content,
       date: new Date(Date.now() + 1000 * 60),
     });
   }
@@ -264,7 +326,11 @@ export class UsersService {
     userId: string,
     oldPassword: string,
     newPassword: string,
+    confirmPassword: string,
   ) {
+    if (newPassword !== confirmPassword) {
+      throw new HttpException('Password must match', HttpStatus.NOT_FOUND);
+    }
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -275,6 +341,8 @@ export class UsersService {
     const hashNewPassword = await this.hashPassword(newPassword);
     user.password = hashNewPassword;
     await this.usersRepository.save(user);
+    console.log('password changed successfully');
+    return user;
   }
 
   public async resetPassword(resetPassword: ResetPasswordDto, token: string) {
@@ -305,11 +373,18 @@ export class UsersService {
     }
   }
 
+  public async emailVerify(userId: string) {
+    const user = await this.getById(userId);
+    user.emailVerified = true;
+    await this.usersRepository.save(user);
+    return user;
+  }
+
   private async hashPassword(newPassword: string) {
     return await bcrypt.hash(newPassword, 10);
   }
 
-  async addBanner(userId, file: any) {
+  async addBanner(userId: string, file: any) {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

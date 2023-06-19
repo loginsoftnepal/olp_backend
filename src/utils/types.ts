@@ -32,6 +32,7 @@ export type CreateNotificationParams = {
   type: string;
   content: string;
   heading: string;
+  relatedUser: User;
 };
 
 export type CreateMessageResponse = {

@@ -89,7 +89,7 @@ export class MessageService {
     const savedMessage = await this.messageRepository.save(newMessage);
     conversation.lastMessageSent = savedMessage;
     const updated = await this.conversationService.save(conversation);
-    return { message: savedMessage, conversation: updated };
+    return { message: savedMessage, conversation: updated, call: newCall };
   }
 
   async deleteMessage(params: DeleteMessageParams) {

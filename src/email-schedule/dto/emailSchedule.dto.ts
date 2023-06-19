@@ -10,7 +10,7 @@ export class EmailScheduleDto {
 
   @IsString()
   @IsNotEmpty()
-  content: string;
+  html: string;
 
   @IsDateString()
   date: Date;

@@ -23,6 +23,9 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { CreateMessageResponse } from 'src/utils/types';
 import { Conversation } from 'src/conversations/conversation.entity';
 import { ConversationsService } from 'src/conversations/conversations.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { MessageService } from 'src/message/message.service';
+import { CallService } from 'src/call/call.service';
 
 @WebSocketGateway({
   cors: {
@@ -40,6 +43,9 @@ export class SocketwayService
     readonly sessionManager: SessionManagerService,
     private readonly connectionService: ConnectionService,
     private readonly conversationService: ConversationsService,
+    private readonly notificationService: NotificationService,
+    private readonly messageService: MessageService,
+    private readonly callService: CallService,
   ) {}
 
   @WebSocketServer()
@@ -69,7 +75,7 @@ export class SocketwayService
   @SubscribeMessage('message')
   handleCreateMessage(socket: Socket, payload: any) {
     socket.emit('handleMessage', 'Hello world');
-    console.log(payload);
+    // console.log(payload);
   }
 
   // @SubscribeMessage('onConversationJoin')
@@ -145,14 +151,21 @@ export class SocketwayService
     } = payload.message;
 
     const authorSocket = this.sessionManager.getUserSocket(author.id);
-
+    const receiver = author.id == creator.id ? recepient : creator;
     const recepientSocket =
       author.id == creator.id
         ? this.sessionManager.getUserSocket(recepient.id)
         : this.sessionManager.getUserSocket(creator.id);
-
     if (authorSocket) authorSocket.emit('onMessage', payload);
     if (recepientSocket) recepientSocket.emit('onMessage', payload);
+    if (!recepientSocket)
+      this.notificationService.create({
+        heading: `You received a message from ${author.profile.fullname}`,
+        content: 'none',
+        type: 'messageReceived',
+        relatedUser: author,
+        user: receiver,
+      });
   }
 
   @OnEvent('conversation.create')
@@ -162,6 +175,15 @@ export class SocketwayService
     );
 
     if (recepientSocket) recepientSocket.emit('onConversation', payload);
+    if (!recepientSocket) {
+      this.notificationService.create({
+        heading: `You have new conversation with ${payload.creator.profile.fullname}`,
+        content: 'none',
+        type: 'conversationReceived',
+        relatedUser: payload.creator,
+        user: payload.recepient,
+      });
+    }
   }
 
   @OnEvent('message.delete')
@@ -185,15 +207,48 @@ export class SocketwayService
   ) {
     console.log('onVideoCallInitiate');
     const user = await this.userService.getById(socket.user.userId);
+
     const caller = user;
     console.log(caller);
     const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
+
+    const receiver = await this.userService.getById(data.recepientId);
+
+    const callDetails = await this.messageService.createCall({
+      user: user,
+      type: 'video',
+      status: 'initiate',
+      id: data.conversationId,
+    });
+
+    receiverSocket &&
+      receiverSocket.emit('onVideoCall', {
+        ...data,
+        caller,
+        callDetails,
+      });
+    // socket &&
+    //   socket.emit('onVoiceCall', {
+    //     ...data,
+    //     caller,
+    //     callDetails,
+    //   });
     if (!receiverSocket) {
-      setTimeout(() => {
-        socket.emit('onUserUnavailable');
-      }, 10000);
+      setTimeout(async () => {
+        const updateCall = await this.callService.update({
+          status: 'missed',
+          id: callDetails.call.id,
+        });
+        socket.emit('onUserUnavailable', { ...callDetails, call: updateCall });
+        await this.notificationService.create({
+          heading: `You missed a call from ${caller.profile.fullname}`,
+          content: 'none',
+          type: 'missedCall',
+          user: receiver,
+          relatedUser: caller,
+        });
+      }, 20000);
     }
-    receiverSocket && receiverSocket.emit('onVideoCall', { ...data, caller });
   }
 
   @SubscribeMessage('onVideoCallAccept')
@@ -212,7 +267,16 @@ export class SocketwayService
     if (!conversation) return console.log('No conversation found');
     const user = await this.userService.getById(socket.user.userId);
     if (callerSocket) {
-      const payload = { ...data, conversation, acceptor: user };
+      const updateCall = await this.callService.update({
+        status: 'accepted',
+        id: data.callDetail.call.id,
+      });
+      const payload = {
+        ...data,
+        conversation,
+        acceptor: user,
+        callDetail: { ...data.callDetail, call: updateCall },
+      };
       callerSocket.emit('onVideoCallAccept', payload);
       socket.emit('onVideoCallAccept', payload);
     }
@@ -226,8 +290,26 @@ export class SocketwayService
     console.log('onVideoCall Reject');
     const receiver = socket.user;
     const callerSocket = this.sessionManager.getUserSocket(data.caller.id);
-    callerSocket && callerSocket.emit('onVideoCallRejected', { receiver });
-    socket.emit('onVideoCallRejected', { receiver });
+    console.log(data.callDetail);
+    const updateCall = await this.callService.update({
+      status: 'rejected',
+      id: data.callDetail.call.id,
+    });
+    callerSocket &&
+      callerSocket.emit('onVideoCallRejected', {
+        caller: data.caller,
+        callDetail: {
+          ...data.callDetail,
+          call: updateCall,
+        },
+      });
+    socket.emit('onVideoCallRejected', {
+      caller: data.caller,
+      callDetail: {
+        ...data.callDetail,
+        call: updateCall,
+      },
+    });
   }
 
   @SubscribeMessage('onVideoCallHangUp')
@@ -235,17 +317,53 @@ export class SocketwayService
     @MessageBody() data: any,
     @ConnectedSocket() socket: AuthenticatedSocket,
   ) {
+    let updateCall;
+    if (data.callDetail) {
+      updateCall = await this.callService.update({
+        status: 'completed',
+        id: data.callDetail.call.id,
+      });
+    }
     if (socket.user.userId === data.caller.id) {
       const receiverSocket = this.sessionManager.getUserSocket(
         data.receiver.id,
       );
-      socket.emit('onVideoCallHangUp');
-      return receiverSocket && receiverSocket.emit('onVideoCallHangUp');
+
+      socket.emit(
+        'onVideoCallHangUp',
+        data.callDetail && {
+          ...data.callDetail,
+          call: updateCall,
+        },
+      );
+      return (
+        receiverSocket &&
+        receiverSocket.emit(
+          'onVideoCallHangUp',
+          data.callDetail && {
+            ...data.callDetail,
+            call: updateCall,
+          },
+        )
+      );
     }
 
-    socket.emit('onVideoCallHangUp');
+    socket.emit(
+      'onVideoCallHangUp',
+      data.callDetail && {
+        ...data.callDetail,
+        call: updateCall,
+      },
+    );
     const callerSocket = this.sessionManager.getUserSocket(data.caller.id);
-    callerSocket && callerSocket.emit('onVideoCallHangUp');
+    callerSocket &&
+      callerSocket.emit(
+        'onVideoCallHangUp',
+        data.callDetail && {
+          ...data.callDetail,
+          call: updateCall,
+        },
+      );
   }
 
   @SubscribeMessage('onVoiceCallInitiate')
@@ -255,9 +373,49 @@ export class SocketwayService
   ) {
     const user = await this.userService.getById(socket.user.userId);
     const caller = user;
+
+    const receiver = await this.userService.getById(data.recepientId);
+
     const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
-    if (!receiverSocket) socket.emit('onUserUnavailable');
-    receiverSocket.emit('onVoiceCall', { ...data, caller });
+
+    const callDetails = await this.messageService.createCall({
+      user: user,
+      type: 'voice',
+      status: 'initiate',
+      id: data.conversationId,
+    });
+
+    receiverSocket &&
+      receiverSocket.emit('onVoiceCall', {
+        ...data,
+        caller,
+        callDetails,
+      });
+    // socket &&
+    //   socket.emit('onVoiceCall', {
+    //     ...data,
+    //     caller,
+    //     callDetails,
+    //   });
+    console.log('emitting voice call');
+    if (!receiverSocket) {
+      setTimeout(async () => {
+        const updateCall = await this.callService.update({
+          status: 'missed',
+          id: callDetails.call.id,
+        });
+        console.log('uaer not  available');
+        socket.emit('onUserUnavailable', { ...callDetails, call: updateCall });
+
+        await this.notificationService.create({
+          heading: `You missed a call from ${caller.profile.fullname}`,
+          content: 'none',
+          type: 'missedCall',
+          user: receiver,
+          relatedUser: caller,
+        });
+      }, 20000);
+    }
   }
 
   @SubscribeMessage('onVoiceCallAccept')
@@ -275,7 +433,16 @@ export class SocketwayService
     if (!conversation) return console.log('No conversation found');
     const user = await this.userService.getById(socket.user.userId);
     if (callerSocket) {
-      const payload = { ...data, conversation, acceptor: user };
+      const updateCall = await this.callService.update({
+        status: 'accepted',
+        id: data.callDetail.call.id,
+      });
+      const payload = {
+        ...data,
+        conversation,
+        acceptor: user,
+        callDetail: { ...data.callDetail, call: updateCall },
+      };
       callerSocket.emit('onVoiceCallAccept', payload);
       socket.emit('onVoiceCallAccept', payload);
     }
@@ -288,8 +455,25 @@ export class SocketwayService
   ) {
     const receiver = socket.user;
     const callerSocket = this.sessionManager.getUserSocket(data.caller.id);
-    callerSocket && callerSocket.emit('onVoiceCallRejected', { receiver });
-    socket.emit('onVoiceCallRejected', { receiver });
+    const updateCall = await this.callService.update({
+      status: 'rejected',
+      id: data.callDetail.call.id,
+    });
+    callerSocket &&
+      callerSocket.emit('onVoiceCallRejected', {
+        caller: data.caller,
+        callDetail: {
+          ...data.callDetail,
+          call: updateCall,
+        },
+      });
+    socket.emit('onVoiceCallRejected', {
+      caller: data.caller,
+      callDetail: {
+        ...data.callDetail,
+        call: updateCall,
+      },
+    });
   }
 
   @SubscribeMessage('onVoiceCallHangUp')
@@ -297,16 +481,51 @@ export class SocketwayService
     @MessageBody() data: any,
     @ConnectedSocket() socket: AuthenticatedSocket,
   ) {
+    let updateCall;
+    if (data.callDetail) {
+      updateCall = await this.callService.update({
+        status: 'completed',
+        id: data.callDetail.call.id,
+      });
+    }
     if (socket.user.userId === data.caller.id) {
       const receiverSocket = this.sessionManager.getUserSocket(
         data.receiver.id,
       );
-      socket.emit('onVoiceCallHangUp');
-      return receiverSocket && receiverSocket.emit('onVoiceCallHangUp');
+      socket.emit(
+        'onVoiceCallHangUp',
+        data.callDetail && {
+          ...data.callDetail,
+          call: updateCall,
+        },
+      );
+      return (
+        receiverSocket &&
+        receiverSocket.emit(
+          'onVoiceCallHangUp',
+          data.callDetail && {
+            ...data.callDetail,
+            call: updateCall,
+          },
+        )
+      );
     }
 
-    socket.emit('onVoiceCallHangUp');
+    socket.emit(
+      'onVoiceCallHangUp',
+      data.callDetail && {
+        ...data.callDetail,
+        call: updateCall,
+      },
+    );
     const callerSocket = this.sessionManager.getUserSocket(data.caller.id);
-    callerSocket && callerSocket.emit('onVoiceCallHangUp');
+    callerSocket &&
+      callerSocket.emit(
+        'onVoiceCallHangUp',
+        data.callDetail && {
+          ...data.callDetail,
+          call: updateCall,
+        },
+      );
   }
 }

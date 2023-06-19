@@ -19,11 +19,11 @@ export class Call {
   @Column()
   status: string;
 
-  @Column()
-  startTime: string;
+  @Column({ nullable: true })
+  startTime: Date;
 
   @Column({ nullable: true })
-  endTime: string;
+  endTime: Date;
 
   @OneToOne(() => Message, (message) => message.call, {
     onDelete: 'CASCADE',

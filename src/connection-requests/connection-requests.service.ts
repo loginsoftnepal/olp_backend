@@ -144,6 +144,25 @@ export class ConnectionRequestsService {
     return connection;
   }
 
+  async deleteAllUsersConnectionRequest(userId: string) {
+    const deleteResponse = await this.connectionRepository
+      .createQueryBuilder('connection-request')
+      .leftJoinAndSelect('connection-request.sender', 'sender')
+      .leftJoinAndSelect('connection-request.receiver', 'receiver')
+      .delete()
+      .from(ConnectionRequest)
+      .where('sender.id = :id', { id: userId })
+      .orWhere('receiver.id = :id', { id: userId })
+      .execute();
+
+    if (!deleteResponse.affected) {
+      throw new HttpException(
+        'No connectionRequest of users found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  }
+
   async isPending(userOneId: string, userTwoId: string) {
     return this.connectionRequestRepository.findOne({
       where: [

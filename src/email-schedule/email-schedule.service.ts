@@ -17,7 +17,7 @@ export class EmailScheduleService {
       this.emailService.sendMail({
         to: emailSchedule.recipient,
         subject: emailSchedule.subject,
-        text: emailSchedule.content,
+        html: emailSchedule.html,
       });
     });
 

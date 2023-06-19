@@ -12,12 +12,15 @@ export class NotificationService {
   ) {}
 
   async create(params: CreateNotificationParams) {
-    const { user, heading, content, type } = params;
+    const { user, heading, content, type, relatedUser } = params;
+    // console.log(params);
     const newNotification = this.notificationRepository.create(params);
+    // console.log(newNotification);
     return await this.notificationRepository.save(newNotification);
   }
 
   async delete(userId: string, notificationId: string) {
+    console.log(userId, notificationId);
     const targetNotification = await this.notificationRepository.findOne({
       where: {
         id: notificationId,
@@ -27,11 +30,28 @@ export class NotificationService {
     if (!targetNotification) {
       throw new HttpException('Notification not found', HttpStatus.NOT_FOUND);
     }
+    const deleteResponse = await this.notificationRepository.delete(
+      targetNotification.id,
+    );
+    if (!deleteResponse.affected) {
+      throw new HttpException(
+        'Cannot delete notification',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async getById(notificationId: string) {
     return await this.notificationRepository.findOne({
       where: { id: notificationId },
     });
+  }
+
+  async getNotificationOfUser(id: string) {
+    const notification = await this.notificationRepository.find({
+      where: { user: { id: id } },
+      relations: ['relatedUser'],
+    });
+    return notification;
   }
 }

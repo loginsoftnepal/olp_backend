@@ -10,6 +10,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { AdminModule } from 'src/admin/admin.module';
 import { EmailScheduleModule } from 'src/email-schedule/email-schedule.module';
 import { JwtRefreshTokenStrategy } from './jwtRefreshToken.strategy';
+import { EmailVerificationModule } from 'src/email-verification/email-verification.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { JwtRefreshTokenStrategy } from './jwtRefreshToken.strategy';
     ConfigModule,
     AdminModule,
     EmailScheduleModule,
+    EmailVerificationModule,
     AdminModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
