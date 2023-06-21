@@ -31,12 +31,17 @@ export class ConnectionRequestEvent {
       receiverSocket.emit('onConnectionRequestCancelled', payload);
   }
 
-  @OnEvent('connection-request.accept')
+  @OnEvent('connection-request.accepted')
   handleConnectionRequestAccepted(payload: AcceptConnectionRequestResponse) {
     const senderSocket = this.gateway.sessionManager.getUserSocket(
       payload.connectionRequest.sender.id,
     );
+    const receiverSocket = this.gateway.sessionManager.getUserSocket(
+      payload.connectionRequest.receiver.id,
+    );
     console.log('onConnectionRequestAccepted to be hit');
+    receiverSocket &&
+      receiverSocket.emit('onConnectionRequestAccepted', payload);
     senderSocket && senderSocket.emit('onConnectionRequestAccepted', payload);
   }
 

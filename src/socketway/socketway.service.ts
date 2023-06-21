@@ -29,7 +29,7 @@ import { CallService } from 'src/call/call.service';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:5173'],
+    origin: ['https://olp.logindesigns.com'],
     credentials: true,
   },
 })
@@ -106,6 +106,7 @@ export class SocketwayService
     // const receiver = data.conversation && data.conversation.creator.id == client.user.id ? data.conversation.receiver.id
     // console.log(client.rooms);
     // client.to(`conversation=${data.roomId}`).emit('onTypingStart');
+    if (!receiverSocket) return;
     receiverSocket.emit('onTypingStart');
   }
 
@@ -116,6 +117,7 @@ export class SocketwayService
   ) {
     console.log('onTypingStop');
     const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
+    if (!receiverSocket) return;
     receiverSocket.emit('onTypingStop');
     // client.to(`conversation-${data.roomId}`).emit('onTypingStop');
   }
@@ -173,7 +175,9 @@ export class SocketwayService
     const recepientSocket = this.sessionManager.getUserSocket(
       payload.recepient.id,
     );
+    // const creatorSocket = this.sessionManager.getUserSocket(payload.creator.id);
 
+    // if (creatorSocket) creatorSocket.emit('onConversation', payload);
     if (recepientSocket) recepientSocket.emit('onConversation', payload);
     if (!recepientSocket) {
       this.notificationService.create({
@@ -211,7 +215,11 @@ export class SocketwayService
     const caller = user;
     console.log(caller);
     const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
-
+    const isConnected = await this.connectionService.isConnection(
+      caller.id,
+      data.recepientId,
+    );
+    if (!isConnected) return;
     const receiver = await this.userService.getById(data.recepientId);
 
     const callDetails = await this.messageService.createCall({
@@ -375,7 +383,11 @@ export class SocketwayService
     const caller = user;
 
     const receiver = await this.userService.getById(data.recepientId);
-
+    const isConnected = this.connectionService.isConnection(
+      caller.id,
+      data.recepientId,
+    );
+    if (!isConnected) return;
     const receiverSocket = this.sessionManager.getUserSocket(data.recepientId);
 
     const callDetails = await this.messageService.createCall({

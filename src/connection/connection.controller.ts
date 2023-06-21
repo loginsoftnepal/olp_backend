@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, Param, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ConnectionService } from './connection.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import RequestWithUser from 'src/authentication/requestWithUser.interface';

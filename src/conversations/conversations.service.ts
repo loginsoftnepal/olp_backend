@@ -97,7 +97,10 @@ export class ConversationsService {
       author: creator,
     });
     await this.messageRepository.save(newMessage);
-    return conversation;
+    // const conversationToUpdate = await this.findById(newConversation.id);
+    conversation.lastMessageSent = newMessage;
+    const updated = await this.conversationRepository.save(conversation);
+    return updated;
   }
 
   async hasAccess({ id, userId }: AccessParams) {

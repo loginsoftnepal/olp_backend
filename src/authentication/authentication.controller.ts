@@ -140,9 +140,25 @@ export class AuthenticationController {
   async emailVerification(
     @Param('resetToken') resetToken: string,
     @Query('userId') userId: string,
+    @Req() request: Request,
   ) {
     console.log(resetToken, userId);
-    return await this.authenticationService.verifyEmail(userId, resetToken);
+    const verifiedUser = await this.authenticationService.verifyEmail(
+      userId,
+      resetToken,
+    );
+    const accessTokenCookie = this.authenticationService.getCookieWithJwtToken(
+      verifiedUser.id,
+    );
+
+    const { cookie, token } =
+      this.authenticationService.getCookieWithJwtRefreshToken(verifiedUser.id);
+
+    await this.usersService.setCurrentRefreshToken(token, verifiedUser.id);
+    const newUser = await this.usersService.getById(verifiedUser.id);
+    console.log(accessTokenCookie, cookie);
+    request.res.setHeader('Set-Cookie', [accessTokenCookie, cookie]);
+    return newUser;
   }
 
   @UseGuards(JwtAuthenticationGuard)

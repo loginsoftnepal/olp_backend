@@ -55,11 +55,13 @@ export class MessageService {
     return { message: savedMessage, conversation: updated };
   }
 
-  getMessages(conversationId: string) {
+  getMessages(conversationId: string, page: number, limit: number) {
     return this.messageRepository.find({
       relations: ['author', 'attachments', 'call', 'conversation'],
       where: { conversation: { id: conversationId } },
       order: { createdAt: 'DESC' },
+      skip: page * limit,
+      take: limit,
     });
   }
 

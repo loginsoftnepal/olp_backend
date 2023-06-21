@@ -92,13 +92,22 @@ export class UsersService {
     );
   }
 
-  async findByUserName(username: string) {
+  async findByUserName(username: string, page: number, limit: number) {
     const users = await this.usersRepository.find({
       where: { profile: { fullname: Like(`%${username}%`) } },
       relations: ['profile', 'family', 'education', 'preferance'],
+      skip: page * limit,
+      take: limit,
     });
     console.log(users);
-    return users;
+    return users.map((user) => {
+      return {
+        ...user,
+        password: null,
+        currentHashedRefreshToken: null,
+        isGoogleAuth: null,
+      };
+    });
   }
 
   async filterUser(query: any) {
@@ -149,7 +158,10 @@ export class UsersService {
       });
     }
 
-    const result = await queryBuilder.getMany();
+    const result = await queryBuilder
+      .skip(query.page * query.limit)
+      .take(query.limit)
+      .getMany();
     return result;
   }
 
@@ -159,6 +171,8 @@ export class UsersService {
     ageTo: string,
     caste: string,
     user: User,
+    page: number,
+    limit: number,
   ) {
     const queryBuilder = this.usersRepository
       .createQueryBuilder('user')
@@ -201,12 +215,15 @@ export class UsersService {
       });
     }
 
-    const result = await queryBuilder.getMany();
+    const result = await queryBuilder
+      .skip(page * limit)
+      .limit(limit)
+      .getMany();
     return result;
   }
 
   async getRecommendation(user: User) {
-    const requiredGender = user?.profile?.sex === 'Male' ? 'Female' : 'Male';
+    const requiredGender = user?.profile?.sex === 'Man' ? 'woman' : 'Man';
     const requiredReligon =
       user.preferance.religion === 'Religion No Boundry'
         ? '*'
@@ -224,11 +241,14 @@ export class UsersService {
       .andWhere('profile.religion = :religion', { religion: requiredReligon })
       .andWhere('profile.caste = :caste', { caste: requiredCaste })
       .orderBy('RANDOM()')
+      .limit(20)
       .getMany();
 
-    if (users && users.length <= 0) {
+    if (users && users.length == 0) {
       const moreUser = await this.usersRepository.find({
         where: { profile: { sex: requiredGender } },
+        relations: ['profile', 'education', 'family'],
+        take: 20,
       });
 
       return moreUser;
@@ -468,7 +488,10 @@ export class UsersService {
 
     let profile;
     if (currentProfile) {
-      profile = this.profileService.updateProfile(user, params.profileDetail);
+      profile = await this.profileService.updateProfile(
+        user,
+        params.profileDetail,
+      );
     } else {
       profile = await this.profileService.createProfile(
         user,
@@ -487,9 +510,9 @@ export class UsersService {
     const currentFamily = user.family;
     let family;
     if (currentFamily) {
-      family = this.familyService.updateFamily(user, params.familyDetail);
+      family = await this.familyService.updateFamily(user, params.familyDetail);
     } else {
-      family = this.familyService.createFamily(user, params.familyDetail);
+      family = await this.familyService.createFamily(user, params.familyDetail);
     }
 
     const newFamily = await this.familyService.getFamilyDetail(user);
@@ -504,12 +527,12 @@ export class UsersService {
     const currentEducation = user.education;
     let education;
     if (currentEducation) {
-      education = this.educationService.updateEducationDetail(
+      education = await this.educationService.updateEducationDetail(
         user,
         params.educationDetail,
       );
     } else {
-      education = this.educationService.createEducationDetail(
+      education = await this.educationService.createEducationDetail(
         user,
         params.educationDetail,
       );
@@ -527,12 +550,12 @@ export class UsersService {
     const currentPreferance = user.preferance;
     let preferance;
     if (currentPreferance) {
-      preferance = this.preferanceService.updatePreferance(
+      preferance = await this.preferanceService.updatePreferance(
         user,
         params.preferanceDetail,
       );
     } else {
-      preferance = this.preferanceService.createPreferance(
+      preferance = await this.preferanceService.createPreferance(
         user,
         params.preferanceDetail,
       );

@@ -185,6 +185,14 @@ export class AuthenticationService {
       );
     }
 
+    const user = await this.usersService.getByEmail(email);
+    if (!user) {
+      throw new HttpException('Invalid Email', HttpStatus.NOT_FOUND);
+    } else if (user && userId !== user.id) {
+      throw new HttpException('Invalid Email', HttpStatus.NOT_FOUND);
+    } else if (user && user.emailVerified) {
+      throw new HttpException('Email already verified', HttpStatus.NOT_FOUND);
+    }
     await this.sendVerificaitonEmail(userId, email);
   }
 
@@ -193,6 +201,9 @@ export class AuthenticationService {
     const emailVerification = await this.emailVerificationService.getByToken(
       resetToken,
     );
+    if (!emailVerification) {
+      throw new HttpException('Invalid link', HttpStatus.BAD_REQUEST);
+    }
     const user = await this.usersService.emailVerify(userId);
     await this.emailVerificationService.deleteEmailVerification(
       emailVerification.id,

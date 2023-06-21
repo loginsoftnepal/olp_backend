@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, Param, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import RequestWithUser from 'src/authentication/requestWithUser.interface';
 import JwtAuthenticationGuard from 'src/authentication/jwt-authentication.guard';
@@ -9,9 +17,15 @@ export class NotificationController {
 
   @Get()
   @UseGuards(JwtAuthenticationGuard)
-  async getNotifications(@Req() request: RequestWithUser) {
+  async getNotifications(
+    @Req() request: RequestWithUser,
+    @Query('page') page = 1,
+    @Query('limit') limit = 30,
+  ) {
     return await this.notificationService.getNotificationOfUser(
       request.user.id,
+      page,
+      limit,
     );
   }
 

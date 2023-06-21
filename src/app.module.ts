@@ -36,6 +36,7 @@ import { CallModule } from './call/call.module';
 import { NotificationModule } from './notification/notification.module';
 import { BannerModule } from './banner/banner.module';
 import { EmailVerificationModule } from './email-verification/email-verification.module';
+import { RecommendationModule } from './recommendation/recommendation.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { EmailVerificationModule } from './email-verification/email-verification
     NotificationModule,
     BannerModule,
     EmailVerificationModule,
+    RecommendationModule,
   ],
   controllers: [AppController],
   providers: [

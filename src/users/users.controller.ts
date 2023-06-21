@@ -122,6 +122,8 @@ export class UsersController {
     @Query('ageFrom') ageFrom: string,
     @Query('ageTo') ageTo: string,
     @Query('caste') caste: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
   ) {
     console.log('we are herre');
     const result = await this.usersService.letsBegin(
@@ -130,6 +132,8 @@ export class UsersController {
       ageTo,
       caste,
       request.user,
+      page,
+      limit,
     );
 
     return Promise.all(
@@ -164,9 +168,15 @@ export class UsersController {
   async searchUser(
     @Req() request: RequestWithUser,
     @Query('username') username: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
   ) {
     console.log(username);
-    const result = await this.usersService.findByUserName(username);
+    const result = await this.usersService.findByUserName(
+      username,
+      page,
+      limit,
+    );
     return Promise.all(
       result.map(async (user) => {
         return {
@@ -304,8 +314,11 @@ export class UsersController {
   @Post('password/forget')
   async forgetPassword(@Body() forgetPass: ForgetPasswordDto) {
     const user = await this.usersService.getByEmail(forgetPass.email);
-    if (user.isGoogleAuth) {
-      throw new HttpException('Cannot change password', HttpStatus.NOT_FOUND);
+    if (!user) {
+      throw new HttpException('Invalid', HttpStatus.NOT_FOUND);
+    }
+    if (user && user.isGoogleAuth) {
+      throw new HttpException('Invalid', HttpStatus.NOT_FOUND);
     }
 
     await this.usersService.forgetPassword(user);
@@ -346,7 +359,7 @@ export class UsersController {
     @Query('username') username: string,
   ) {
     console.log('seearch/conversation');
-    const result = await this.usersService.findByUserName(username);
+    const result = await this.usersService.findByUserName(username, 0, 20);
     return result;
   }
 
@@ -355,9 +368,15 @@ export class UsersController {
   async researchUser(
     @Req() request: RequestWithUser,
     @Param('username') username: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
   ) {
     console.log(username);
-    const result = await this.usersService.findByUserName(username);
+    const result = await this.usersService.findByUserName(
+      username,
+      page,
+      limit,
+    );
     return Promise.all(
       result.map(async (user) => {
         return {

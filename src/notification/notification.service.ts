@@ -47,10 +47,12 @@ export class NotificationService {
     });
   }
 
-  async getNotificationOfUser(id: string) {
+  async getNotificationOfUser(id: string, page: number, limit: number) {
     const notification = await this.notificationRepository.find({
       where: { user: { id: id } },
       relations: ['relatedUser'],
+      skip: page * limit,
+      take: limit,
     });
     return notification;
   }

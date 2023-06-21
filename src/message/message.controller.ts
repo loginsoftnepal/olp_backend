@@ -4,8 +4,10 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFiles,
   UseGuards,
@@ -124,8 +126,10 @@ export class MessageController {
   async getMessagesFromConversation(
     @Req() request: RequestWithUser,
     @Param('id') id: string,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 20,
   ) {
-    const messages = await this.messageService.getMessages(id);
+    const messages = await this.messageService.getMessages(id, page, limit);
     return { id, messages };
   }
 
